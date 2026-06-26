@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Dispatch Center{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <aside class="sidebar">
+        <a class="brand" href="{{ url_for('main.dashboard') }}">
+            <span class="brand-mark">DC</span>
+            <span>Dispatch Center</span>
+        </a>
+        <nav>
+            <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('organizations.list_organizations') }}">Organizations</a>
+            <a href="{{ url_for('campaigns.list_campaigns') }}">Campaigns</a>
+            <a href="{{ url_for('dispatches.list_dispatches') }}">Dispatches</a>
+            <a href="{{ url_for('platform_versions.list_platform_versions') }}">Platform Versions</a>
+            <a href="{{ url_for('media.list_assets') }}">Media Library</a>
+            <a href="{{ url_for('queue.publishing_queue') }}">Publishing Queue</a>
+            <a href="{{ url_for('settings.list_settings') }}">Settings</a>
+        </nav>
+    </aside>
+    <main class="main">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-stack">
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

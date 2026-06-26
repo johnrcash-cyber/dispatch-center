@@ -1,0 +1,29 @@
+{% macro text_input(name, label, value='', type='text', required=False) %}
+<label>
+    <span>{{ label }}</span>
+    <input type="{{ type }}" name="{{ name }}" value="{{ value or '' }}" {% if required %}required{% endif %}>
+</label>
+{% endmacro %}
+
+{% macro textarea(name, label, value='', rows=5) %}
+<label class="span-2">
+    <span>{{ label }}</span>
+    <textarea name="{{ name }}" rows="{{ rows }}">{{ value or '' }}</textarea>
+</label>
+{% endmacro %}
+
+{% macro select_input(name, label, options, selected_id=None, label_attr='name') %}
+<label>
+    <span>{{ label }}</span>
+    <select name="{{ name }}" required>
+        <option value="">Choose...</option>
+        {% for option in options %}
+            <option value="{{ option.id }}" {% if option.id == selected_id %}selected{% endif %}>{{ option|attr(label_attr) }}</option>
+        {% endfor %}
+    </select>
+</label>
+{% endmacro %}
+
+{% macro status_badge(status) %}
+<span class="badge status-{{ (status or 'draft')|lower|replace(' ', '-') }}">{{ status or 'Draft' }}</span>
+{% endmacro %}

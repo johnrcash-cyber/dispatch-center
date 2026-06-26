@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% from "macros.html" import text_input, textarea, select_input %}
+{% block title %}{{ title }} | Dispatch Center{% endblock %}
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">Settings</p><h1>{{ title }}</h1></div></header>
+<form method="post" class="form-grid">
+    {{ select_input("organization_id", "Organization", organizations, setting.organization_id) }}
+    {{ text_input("platform_name", "Platform Name", setting.platform_name, required=True) }}
+    {{ text_input("destination_url", "Destination URL", setting.destination_url, type="url") }}
+    {{ text_input("posting_method", "Posting Method", setting.posting_method or "Manual") }}
+    {{ text_input("character_limit", "Character Limit", setting.character_limit, type="number") }}
+    {{ text_input("default_hashtags", "Default Hashtags", setting.default_hashtags) }}
+    <label class="check"><input type="checkbox" name="enabled" {% if setting.enabled is not false %}checked{% endif %}> <span>Enabled</span></label>
+    <label class="check"><input type="checkbox" name="supports_markdown" {% if setting.supports_markdown %}checked{% endif %}> <span>Supports Markdown</span></label>
+    <label class="check"><input type="checkbox" name="supports_html" {% if setting.supports_html %}checked{% endif %}> <span>Supports HTML</span></label>
+    <label class="check"><input type="checkbox" name="supports_images" {% if setting.supports_images is not false %}checked{% endif %}> <span>Supports Images</span></label>
+    {{ textarea("default_footer", "Default Footer", setting.default_footer, rows=3) }}
+    {{ textarea("notes", "Notes", setting.notes) }}
+    <div class="form-actions span-2"><button class="button primary" type="submit">Save Setting</button><a class="button" href="{{ url_for('settings.list_settings') }}">Cancel</a></div>
+</form>
+{% endblock %}

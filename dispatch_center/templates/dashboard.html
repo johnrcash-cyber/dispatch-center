@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% from "macros.html" import status_badge %}
+{% block title %}Dashboard | Dispatch Center{% endblock %}
+{% block content %}
+<header class="page-header">
+    <div>
+        <p class="eyebrow">Operations</p>
+        <h1>Dashboard</h1>
+    </div>
+    <a class="button primary" href="{{ url_for('organizations.create_organization') }}">New Organization</a>
+</header>
+
+<section class="metric-grid">
+    <a class="metric" href="{{ url_for('organizations.list_organizations') }}"><span>{{ counts.organizations }}</span>Organizations</a>
+    <a class="metric" href="{{ url_for('campaigns.list_campaigns') }}"><span>{{ counts.campaigns }}</span>Campaigns</a>
+    <a class="metric" href="{{ url_for('dispatches.list_dispatches') }}"><span>{{ counts.dispatches }}</span>Dispatches</a>
+    <a class="metric" href="{{ url_for('queue.publishing_queue') }}"><span>{{ counts.queue }}</span>Queued Versions</a>
+</section>
+
+<section class="split">
+    <div>
+        <div class="section-header">
+            <h2>Recent Dispatches</h2>
+            <a href="{{ url_for('dispatches.create_dispatch') }}">Add</a>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Title</th><th>Campaign</th><th>Status</th></tr></thead>
+                <tbody>
+                    {% for dispatch in recent_dispatches %}
+                    <tr>
+                        <td><a href="{{ url_for('dispatches.detail_dispatch', dispatch_id=dispatch.id) }}">{{ dispatch.title }}</a></td>
+                        <td>{{ dispatch.campaign.name }}</td>
+                        <td>{{ status_badge(dispatch.status) }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3">No dispatches yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div>
+        <div class="section-header">
+            <h2>Queue Snapshot</h2>
+            <a href="{{ url_for('queue.publishing_queue') }}">Open queue</a>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Platform</th><th>Dispatch</th><th>Status</th></tr></thead>
+                <tbody>
+                    {% for version in queue_items %}
+                    <tr>
+                        <td>{{ version.platform_name }}</td>
+                        <td>{{ version.dispatch.title }}</td>
+                        <td>{{ status_badge(version.status) }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3">Nothing waiting to publish.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

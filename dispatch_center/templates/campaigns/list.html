@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% from "macros.html" import status_badge %}
+{% block title %}Campaigns | Dispatch Center{% endblock %}
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">Planning</p><h1>Campaigns</h1></div><a class="button primary" href="{{ url_for('campaigns.create_campaign') }}">New Campaign</a></header>
+<div class="table-wrap"><table><thead><tr><th>Name</th><th>Organization</th><th>Status</th><th>Priority</th><th>Target</th><th></th></tr></thead><tbody>
+{% for campaign in campaigns %}
+<tr><td><a href="{{ url_for('campaigns.detail_campaign', campaign_id=campaign.id) }}">{{ campaign.name }}</a></td><td>{{ campaign.organization.name }}</td><td>{{ status_badge(campaign.status) }}</td><td>{{ campaign.priority or "" }}</td><td>{{ campaign.target_publish_date or "" }}</td><td><a href="{{ url_for('campaigns.edit_campaign', campaign_id=campaign.id) }}">Edit</a></td></tr>
+{% else %}<tr><td colspan="6">No campaigns yet.</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

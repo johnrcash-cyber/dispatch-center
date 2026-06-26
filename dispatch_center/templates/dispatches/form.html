@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% from "macros.html" import text_input, textarea, select_input %}
+{% block title %}{{ title }} | Dispatch Center{% endblock %}
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">Dispatch</p><h1>{{ title }}</h1></div></header>
+<form method="post" class="form-grid">
+    {{ select_input("campaign_id", "Campaign", campaigns, dispatch.campaign_id) }}
+    {{ text_input("title", "Title", dispatch.title, required=True) }}
+    {{ text_input("internal_name", "Internal Name", dispatch.internal_name) }}
+    {{ text_input("status", "Status", dispatch.status or "Draft") }}
+    {{ text_input("canonical_link", "Canonical Link", dispatch.canonical_link, type="url") }}
+    {{ text_input("tags", "Tags", dispatch.tags) }}
+    {{ textarea("primary_body", "Primary Body", dispatch.primary_body, rows=10) }}
+    {{ textarea("summary", "Summary", dispatch.summary, rows=4) }}
+    {{ textarea("short_version", "Short Version", dispatch.short_version, rows=4) }}
+    {{ textarea("call_to_action", "Call To Action", dispatch.call_to_action, rows=3) }}
+    {{ textarea("notes", "Notes", dispatch.notes) }}
+    <div class="form-actions span-2"><button class="button primary" type="submit">Save Dispatch</button><a class="button" href="{{ url_for('dispatches.list_dispatches') }}">Cancel</a></div>
+</form>
+{% endblock %}

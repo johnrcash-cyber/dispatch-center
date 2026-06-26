@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% from "macros.html" import status_badge %}
+{% block title %}Publishing Queue | Dispatch Center{% endblock %}
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">Manual Publishing</p><h1>Publishing Queue</h1></div></header>
+<div class="queue-list">
+{% for version in versions %}
+    <article class="queue-item">
+        <div class="queue-heading">
+            <div>
+                <p class="eyebrow">{{ version.dispatch.campaign.organization.name }} / {{ version.dispatch.campaign.name }}</p>
+                <h2>{{ version.platform_name }}: {{ version.platform_title or version.dispatch.title }}</h2>
+            </div>
+            {{ status_badge(version.status) }}
+        </div>
+        <div class="copy-grid">
+            <button class="button" data-copy="{{ version.platform_title or version.dispatch.title }}">Copy Title</button>
+            <button class="button" data-copy="{{ version.platform_body or '' }}">Copy Body</button>
+            <button class="button" data-copy="{{ version.selected_image_urls or '' }}">Copy Image URLs</button>
+            {% if version.destination_url %}<a class="button" href="{{ version.destination_url }}" target="_blank">Open Destination</a>{% endif %}
+        </div>
+        <pre>{{ version.platform_body or version.short_text or "No body text yet." }}</pre>
+        <form method="post" action="{{ url_for('queue.mark_published', version_id=version.id) }}" class="publish-form">
+            <input type="url" name="posted_url" placeholder="Posted URL">
+            <button class="button primary" type="submit">Mark as Published</button>
+            <a class="button" href="{{ url_for('platform_versions.edit_platform_version', version_id=version.id) }}">Edit</a>
+        </form>
+    </article>
+{% else %}
+    <p>No platform versions are waiting to publish.</p>
+{% endfor %}
+</div>
+{% endblock %}

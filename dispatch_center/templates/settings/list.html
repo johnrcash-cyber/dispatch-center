@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Settings | Dispatch Center{% endblock %}
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">Defaults</p><h1>Platform Settings</h1></div><a class="button primary" href="{{ url_for('settings.create_setting') }}">New Setting</a></header>
+<div class="table-wrap"><table><thead><tr><th>Platform</th><th>Organization</th><th>Enabled</th><th>Method</th><th>Limit</th><th>Destination</th><th></th></tr></thead><tbody>
+{% for setting in settings %}
+<tr><td>{{ setting.platform_name }}</td><td>{{ setting.organization.name }}</td><td>{{ "Yes" if setting.enabled else "No" }}</td><td>{{ setting.posting_method }}</td><td>{{ setting.character_limit or "" }}</td><td>{% if setting.destination_url %}<a href="{{ setting.destination_url }}" target="_blank">Open</a>{% endif %}</td><td><a href="{{ url_for('settings.edit_setting', setting_id=setting.id) }}">Edit</a></td></tr>
+{% else %}<tr><td colspan="7">No platform settings yet.</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

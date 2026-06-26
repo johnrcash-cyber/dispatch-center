@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% from "macros.html" import text_input, textarea, select_input %}
+{% block title %}{{ title }} | Dispatch Center{% endblock %}
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">Campaign</p><h1>{{ title }}</h1></div></header>
+<form method="post" class="form-grid">
+    {{ select_input("organization_id", "Organization", organizations, campaign.organization_id) }}
+    {{ text_input("name", "Name", campaign.name, required=True) }}
+    {{ text_input("category", "Category", campaign.category) }}
+    {{ text_input("status", "Status", campaign.status or "Planning") }}
+    {{ text_input("owner", "Owner", campaign.owner) }}
+    {{ text_input("priority", "Priority", campaign.priority) }}
+    {{ text_input("start_date", "Start Date", campaign.start_date, type="date") }}
+    {{ text_input("target_publish_date", "Target Publish Date", campaign.target_publish_date, type="date") }}
+    {{ text_input("tags", "Tags", campaign.tags) }}
+    {{ textarea("description", "Description", campaign.description) }}
+    {{ textarea("notes", "Notes", campaign.notes) }}
+    <div class="form-actions span-2"><button class="button primary" type="submit">Save Campaign</button><a class="button" href="{{ url_for('campaigns.list_campaigns') }}">Cancel</a></div>
+</form>
+{% endblock %}

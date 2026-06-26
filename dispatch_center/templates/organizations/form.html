@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% from "macros.html" import text_input, textarea %}
+{% block title %}{{ title }} | Dispatch Center{% endblock %}
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">Organization</p><h1>{{ title }}</h1></div></header>
+<form method="post" class="form-grid">
+    {{ text_input("name", "Name", organization.name, required=True) }}
+    {{ text_input("website_url", "Website URL", organization.website_url, type="url") }}
+    {{ text_input("logo_url", "Logo URL", organization.logo_url, type="url") }}
+    {{ textarea("description", "Description", organization.description) }}
+    {{ textarea("default_cta", "Default CTA", organization.default_cta, rows=3) }}
+    {{ textarea("default_footer", "Default Footer", organization.default_footer, rows=3) }}
+    {{ textarea("notes", "Notes", organization.notes) }}
+    <div class="form-actions span-2"><button class="button primary" type="submit">Save Organization</button><a class="button" href="{{ url_for('organizations.list_organizations') }}">Cancel</a></div>
+</form>
+{% endblock %}
