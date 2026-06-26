@@ -12,18 +12,50 @@
             <span class="brand-mark">DC</span>
             <span>Dispatch Center</span>
         </a>
-        <nav>
-            <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
-            <a href="{{ url_for('organizations.list_organizations') }}">Organizations</a>
-            <a href="{{ url_for('campaigns.list_campaigns') }}">Campaigns</a>
-            <a href="{{ url_for('dispatches.list_dispatches') }}">Dispatches</a>
+        {% if g.active_organization %}
+            <nav>
+                <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('campaigns.list_campaigns') }}">Campaigns</a>
+                <a href="{{ url_for('dispatches.list_dispatches') }}">Dispatches</a>
+                <a href="{{ url_for('media.list_assets') }}">Media Library</a>
+                <a href="{{ url_for('queue.publishing_queue') }}">Publishing Queue</a>
+                <a href="{{ url_for('settings.list_settings') }}">Settings</a>
+            </nav>
+        {% endif %}
+        <div class="sidebar-admin">
+            <p class="eyebrow">Admin</p>
             <a href="{{ url_for('platform_versions.list_platform_versions') }}">Platform Versions</a>
-            <a href="{{ url_for('media.list_assets') }}">Media Library</a>
-            <a href="{{ url_for('queue.publishing_queue') }}">Publishing Queue</a>
-            <a href="{{ url_for('settings.list_settings') }}">Settings</a>
-        </nav>
+            <a href="{{ url_for('organizations.list_organizations') }}">Manage Organizations</a>
+        </div>
     </aside>
     <main class="main">
+        <header class="workspace-bar">
+            {% if g.active_organization %}
+                <div class="workspace-identity">
+                    {% if g.active_organization.logo_url %}
+                        <img src="{{ g.active_organization.logo_url }}" alt="">
+                    {% else %}
+                        <span class="workspace-fallback">{{ g.active_organization.name[:2]|upper }}</span>
+                    {% endif %}
+                    <div>
+                        <p class="eyebrow">Workspace</p>
+                        <strong>{{ g.active_organization.name }}</strong>
+                    </div>
+                </div>
+            {% else %}
+                <div><p class="eyebrow">Workspace</p><strong>Choose Organization</strong></div>
+            {% endif %}
+            <form method="post" action="{{ url_for('organizations.set_active_organization_route', org_id=0) }}" class="workspace-switcher" data-switcher-form>
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <select data-organization-switcher>
+                    <option value="">Switch organization...</option>
+                    {% for organization in g.organizations or [] %}
+                        <option value="{{ url_for('organizations.set_active_organization_route', org_id=organization.id) }}" {% if g.active_organization and organization.id == g.active_organization.id %}selected{% endif %}>{{ organization.name }}</option>
+                    {% endfor %}
+                </select>
+                <a class="button" href="{{ url_for('organizations.list_organizations') }}">Manage Organizations</a>
+            </form>
+        </header>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <div class="flash-stack">

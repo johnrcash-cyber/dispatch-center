@@ -2,6 +2,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from dispatch_center.forms import form_datetime, form_int, form_text
 from dispatch_center.models import Dispatch, PlatformVersion, db
+from dispatch_center.workspace import dispatch_query, platform_version_query
 
 
 platform_versions_bp = Blueprint("platform_versions", __name__, url_prefix="/platform-versions")
@@ -9,14 +10,14 @@ platform_versions_bp = Blueprint("platform_versions", __name__, url_prefix="/pla
 
 @platform_versions_bp.route("/")
 def list_platform_versions():
-    versions = PlatformVersion.query.order_by(PlatformVersion.updated_at.desc()).all()
+    versions = platform_version_query().order_by(PlatformVersion.updated_at.desc()).all()
     return render_template("platform_versions/list.html", versions=versions)
 
 
 @platform_versions_bp.route("/new", methods=["GET", "POST"])
 def create_platform_version():
     version = PlatformVersion()
-    dispatches = Dispatch.query.order_by(Dispatch.title).all()
+    dispatches = dispatch_query().order_by(Dispatch.title).all()
     if request.method == "POST":
         save_platform_version(version)
         flash("Platform version created.", "success")
@@ -32,8 +33,8 @@ def create_platform_version():
 
 @platform_versions_bp.route("/<int:version_id>/edit", methods=["GET", "POST"])
 def edit_platform_version(version_id):
-    version = PlatformVersion.query.get_or_404(version_id)
-    dispatches = Dispatch.query.order_by(Dispatch.title).all()
+    version = platform_version_query().filter(PlatformVersion.id == version_id).first_or_404()
+    dispatches = dispatch_query().order_by(Dispatch.title).all()
     if request.method == "POST":
         save_platform_version(version)
         flash("Platform version updated.", "success")
@@ -47,7 +48,9 @@ def edit_platform_version(version_id):
 
 
 def save_platform_version(version):
-    version.dispatch_id = form_int(request.form, "dispatch_id")
+    dispatch_id = form_int(request.form, "dispatch_id")
+    dispatch_query().filter(Dispatch.id == dispatch_id).first_or_404()
+    version.dispatch_id = dispatch_id
     version.platform_name = form_text(request.form, "platform_name") or "Website"
     version.status = form_text(request.form, "status") or "Draft"
     version.platform_title = form_text(request.form, "platform_title")

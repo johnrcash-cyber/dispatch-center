@@ -7,13 +7,13 @@
         <p class="eyebrow">Operations</p>
         <h1>Dashboard</h1>
     </div>
-    <a class="button primary" href="{{ url_for('organizations.create_organization') }}">New Organization</a>
+    <a class="button primary" href="{{ url_for('campaigns.create_campaign') }}">New Campaign</a>
 </header>
 
 <section class="metric-grid">
-    <a class="metric" href="{{ url_for('organizations.list_organizations') }}"><span>{{ counts.organizations }}</span>Organizations</a>
     <a class="metric" href="{{ url_for('campaigns.list_campaigns') }}"><span>{{ counts.campaigns }}</span>Campaigns</a>
     <a class="metric" href="{{ url_for('dispatches.list_dispatches') }}"><span>{{ counts.dispatches }}</span>Dispatches</a>
+    <a class="metric" href="{{ url_for('platform_versions.list_platform_versions') }}"><span>{{ counts.platform_versions }}</span>Platform Versions</a>
     <a class="metric" href="{{ url_for('queue.publishing_queue') }}"><span>{{ counts.queue }}</span>Queued Versions</a>
 </section>
 

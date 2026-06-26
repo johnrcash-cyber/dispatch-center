@@ -10,3 +10,12 @@ document.addEventListener("click", async (event) => {
         button.textContent = original;
     }, 1000);
 });
+
+document.addEventListener("change", (event) => {
+    const select = event.target.closest("[data-organization-switcher]");
+    if (!select || !select.value) return;
+
+    const form = select.closest("[data-switcher-form]");
+    form.action = select.value;
+    form.submit();
+});

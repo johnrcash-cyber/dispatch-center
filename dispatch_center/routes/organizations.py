@@ -2,9 +2,25 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from dispatch_center.forms import form_text
 from dispatch_center.models import Organization, db
+from dispatch_center.workspace import set_active_organization
 
 
 organizations_bp = Blueprint("organizations", __name__, url_prefix="/organizations")
+
+
+@organizations_bp.route("/select")
+def select_organization():
+    organizations = Organization.query.order_by(Organization.name).all()
+    return render_template("organizations/select.html", organizations=organizations)
+
+
+@organizations_bp.route("/set/<int:org_id>", methods=["POST"])
+def set_active_organization_route(org_id):
+    organization = Organization.query.get_or_404(org_id)
+    set_active_organization(organization)
+    flash(f"Workspace switched to {organization.name}.", "success")
+    next_url = request.form.get("next") or url_for("main.dashboard")
+    return redirect(next_url)
 
 
 @organizations_bp.route("/")
@@ -18,6 +34,7 @@ def create_organization():
     organization = Organization()
     if request.method == "POST":
         save_organization(organization)
+        set_active_organization(organization)
         flash("Organization created.", "success")
         return redirect(url_for("organizations.detail_organization", org_id=organization.id))
     return render_template("organizations/form.html", organization=organization, title="New Organization")

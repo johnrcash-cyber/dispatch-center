@@ -4,7 +4,6 @@
 {% block content %}
 <header class="page-header"><div><p class="eyebrow">Settings</p><h1>{{ title }}</h1></div></header>
 <form method="post" class="form-grid">
-    {{ select_input("organization_id", "Organization", organizations, setting.organization_id) }}
     {{ text_input("platform_name", "Platform Name", setting.platform_name, required=True) }}
     {{ text_input("destination_url", "Destination URL", setting.destination_url, type="url") }}
     {{ text_input("posting_method", "Posting Method", setting.posting_method or "Manual") }}

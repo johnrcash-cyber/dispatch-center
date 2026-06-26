@@ -43,4 +43,8 @@ def create_app(config_object=None):
 
     register_seed_command(app)
 
+    from .workspace import workspace_guard
+
+    app.before_request(workspace_guard)
+
     return app

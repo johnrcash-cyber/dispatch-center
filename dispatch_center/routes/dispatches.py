@@ -2,6 +2,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from dispatch_center.forms import form_int, form_text
 from dispatch_center.models import Campaign, Dispatch, db
+from dispatch_center.workspace import campaign_query, dispatch_query
 
 
 dispatches_bp = Blueprint("dispatches", __name__, url_prefix="/dispatches")
@@ -9,14 +10,14 @@ dispatches_bp = Blueprint("dispatches", __name__, url_prefix="/dispatches")
 
 @dispatches_bp.route("/")
 def list_dispatches():
-    dispatches = Dispatch.query.order_by(Dispatch.updated_at.desc()).all()
+    dispatches = dispatch_query().order_by(Dispatch.updated_at.desc()).all()
     return render_template("dispatches/list.html", dispatches=dispatches)
 
 
 @dispatches_bp.route("/new", methods=["GET", "POST"])
 def create_dispatch():
     dispatch = Dispatch()
-    campaigns = Campaign.query.order_by(Campaign.name).all()
+    campaigns = campaign_query().order_by(Campaign.name).all()
     if request.method == "POST":
         save_dispatch(dispatch)
         flash("Dispatch created.", "success")
@@ -27,14 +28,14 @@ def create_dispatch():
 
 @dispatches_bp.route("/<int:dispatch_id>")
 def detail_dispatch(dispatch_id):
-    dispatch = Dispatch.query.get_or_404(dispatch_id)
+    dispatch = dispatch_query().filter(Dispatch.id == dispatch_id).first_or_404()
     return render_template("dispatches/detail.html", dispatch=dispatch)
 
 
 @dispatches_bp.route("/<int:dispatch_id>/edit", methods=["GET", "POST"])
 def edit_dispatch(dispatch_id):
-    dispatch = Dispatch.query.get_or_404(dispatch_id)
-    campaigns = Campaign.query.order_by(Campaign.name).all()
+    dispatch = dispatch_query().filter(Dispatch.id == dispatch_id).first_or_404()
+    campaigns = campaign_query().order_by(Campaign.name).all()
     if request.method == "POST":
         save_dispatch(dispatch)
         flash("Dispatch updated.", "success")
@@ -43,7 +44,9 @@ def edit_dispatch(dispatch_id):
 
 
 def save_dispatch(dispatch):
-    dispatch.campaign_id = form_int(request.form, "campaign_id")
+    campaign_id = form_int(request.form, "campaign_id")
+    campaign_query().filter(Campaign.id == campaign_id).first_or_404()
+    dispatch.campaign_id = campaign_id
     dispatch.title = form_text(request.form, "title") or "Untitled Dispatch"
     dispatch.internal_name = form_text(request.form, "internal_name")
     dispatch.status = form_text(request.form, "status") or "Draft"

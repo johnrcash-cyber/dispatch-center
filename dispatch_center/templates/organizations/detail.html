@@ -2,12 +2,20 @@
 {% from "macros.html" import status_badge %}
 {% block title %}{{ organization.name }} | Dispatch Center{% endblock %}
 {% block content %}
-<header class="page-header"><div><p class="eyebrow">Organization</p><h1>{{ organization.name }}</h1></div><a class="button" href="{{ url_for('organizations.edit_organization', org_id=organization.id) }}">Edit</a></header>
+<header class="page-header">
+    <div><p class="eyebrow">Organization</p><h1>{{ organization.name }}</h1></div>
+    <div class="form-actions">
+        <form method="post" action="{{ url_for('organizations.set_active_organization_route', org_id=organization.id) }}">
+            <button class="button primary" type="submit">Enter Workspace</button>
+        </form>
+        <a class="button" href="{{ url_for('organizations.edit_organization', org_id=organization.id) }}">Edit</a>
+    </div>
+</header>
 <section class="detail-grid">
     <div><h2>Profile</h2><p>{{ organization.description or "No description yet." }}</p><p><strong>CTA:</strong> {{ organization.default_cta or "None" }}</p><p><strong>Footer:</strong> {{ organization.default_footer or "None" }}</p></div>
     <div><h2>Notes</h2><p>{{ organization.notes or "No notes." }}</p>{% if organization.website_url %}<a href="{{ organization.website_url }}" target="_blank">Open website</a>{% endif %}</div>
 </section>
-<div class="section-header"><h2>Campaigns</h2><a href="{{ url_for('campaigns.create_campaign', organization_id=organization.id) }}">Add campaign</a></div>
+<div class="section-header"><h2>Campaigns</h2></div>
 <div class="table-wrap"><table><thead><tr><th>Name</th><th>Status</th><th>Target</th></tr></thead><tbody>
 {% for campaign in organization.campaigns %}
 <tr><td><a href="{{ url_for('campaigns.detail_campaign', campaign_id=campaign.id) }}">{{ campaign.name }}</a></td><td>{{ status_badge(campaign.status) }}</td><td>{{ campaign.target_publish_date or "" }}</td></tr>

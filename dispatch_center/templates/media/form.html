@@ -8,7 +8,6 @@
     {{ text_input("asset_type", "Asset Type", asset.asset_type or "Image") }}
     {{ text_input("url", "URL", asset.url, type="url") }}
     {{ text_input("alt_text", "Alt Text", asset.alt_text) }}
-    <label><span>Organization</span><select name="organization_id"><option value="">None</option>{% for org in organizations %}<option value="{{ org.id }}" {% if org.id == asset.organization_id %}selected{% endif %}>{{ org.name }}</option>{% endfor %}</select></label>
     <label><span>Campaign</span><select name="campaign_id"><option value="">None</option>{% for campaign in campaigns %}<option value="{{ campaign.id }}" {% if campaign.id == asset.campaign_id %}selected{% endif %}>{{ campaign.name }}</option>{% endfor %}</select></label>
     <label><span>Dispatch</span><select name="dispatch_id"><option value="">None</option>{% for dispatch in dispatches %}<option value="{{ dispatch.id }}" {% if dispatch.id == asset.dispatch_id %}selected{% endif %}>{{ dispatch.title }}</option>{% endfor %}</select></label>
     <label class="check"><input type="checkbox" name="approved" {% if asset.approved %}checked{% endif %}> <span>Approved</span></label>

@@ -37,7 +37,32 @@ a:hover { text-decoration: underline; }
 nav { display: grid; gap: 6px; }
 nav a { color: var(--muted); padding: 10px 12px; border-radius: var(--radius); }
 nav a:hover { background: var(--panel); color: var(--text); text-decoration: none; }
+.sidebar-admin { border-top: 1px solid var(--line); margin-top: 24px; padding-top: 18px; display: grid; gap: 6px; }
+.sidebar-admin a { color: var(--muted); padding: 8px 12px; border-radius: var(--radius); }
+.sidebar-admin a:hover { background: var(--panel); color: var(--text); text-decoration: none; }
 .main { padding: 28px; max-width: 1400px; width: 100%; }
+.workspace-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 26px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--panel);
+    padding: 12px 14px;
+}
+.workspace-identity { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.workspace-identity img, .workspace-fallback {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius);
+    object-fit: cover;
+    background: var(--panel-2);
+}
+.workspace-fallback { display: grid; place-items: center; color: var(--accent-strong); font-weight: 700; }
+.workspace-switcher { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.workspace-switcher select { min-width: 220px; }
 .page-header, .section-header, .queue-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
 h1, h2 { margin: 0; line-height: 1.2; }
 h1 { font-size: 2rem; }
@@ -87,6 +112,18 @@ pre { background: #0d1115; border: 1px solid var(--line); border-radius: var(--r
 .form-actions, .copy-grid, .publish-form { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .queue-list { display: grid; gap: 16px; }
 .publish-form input { max-width: 420px; }
+.organization-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.organization-card {
+    display: grid;
+    gap: 14px;
+    align-content: start;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px;
+}
+.organization-card img { width: 58px; height: 58px; object-fit: cover; border-radius: var(--radius); background: var(--panel-2); }
+.organization-card p { color: var(--muted); }
 .flash-stack { display: grid; gap: 10px; margin-bottom: 18px; }
 .flash { border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); padding: 10px 12px; }
 .flash.success { border-color: var(--accent); }

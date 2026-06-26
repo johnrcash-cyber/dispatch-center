@@ -1,7 +1,10 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
-from dispatch_center.forms import form_date, form_int, form_text
-from dispatch_center.models import Campaign, Organization, db
+from flask import g
+
+from dispatch_center.forms import form_date, form_text
+from dispatch_center.models import Campaign, db
+from dispatch_center.workspace import campaign_query
 
 
 campaigns_bp = Blueprint("campaigns", __name__, url_prefix="/campaigns")
@@ -9,41 +12,39 @@ campaigns_bp = Blueprint("campaigns", __name__, url_prefix="/campaigns")
 
 @campaigns_bp.route("/")
 def list_campaigns():
-    campaigns = Campaign.query.order_by(Campaign.updated_at.desc()).all()
+    campaigns = campaign_query().order_by(Campaign.updated_at.desc()).all()
     return render_template("campaigns/list.html", campaigns=campaigns)
 
 
 @campaigns_bp.route("/new", methods=["GET", "POST"])
 def create_campaign():
     campaign = Campaign()
-    organizations = Organization.query.order_by(Organization.name).all()
     if request.method == "POST":
         save_campaign(campaign)
         flash("Campaign created.", "success")
         return redirect(url_for("campaigns.detail_campaign", campaign_id=campaign.id))
-    campaign.organization_id = request.args.get("organization_id", type=int)
-    return render_template("campaigns/form.html", campaign=campaign, organizations=organizations, title="New Campaign")
+    campaign.organization_id = g.active_organization.id
+    return render_template("campaigns/form.html", campaign=campaign, title="New Campaign")
 
 
 @campaigns_bp.route("/<int:campaign_id>")
 def detail_campaign(campaign_id):
-    campaign = Campaign.query.get_or_404(campaign_id)
+    campaign = campaign_query().filter(Campaign.id == campaign_id).first_or_404()
     return render_template("campaigns/detail.html", campaign=campaign)
 
 
 @campaigns_bp.route("/<int:campaign_id>/edit", methods=["GET", "POST"])
 def edit_campaign(campaign_id):
-    campaign = Campaign.query.get_or_404(campaign_id)
-    organizations = Organization.query.order_by(Organization.name).all()
+    campaign = campaign_query().filter(Campaign.id == campaign_id).first_or_404()
     if request.method == "POST":
         save_campaign(campaign)
         flash("Campaign updated.", "success")
         return redirect(url_for("campaigns.detail_campaign", campaign_id=campaign.id))
-    return render_template("campaigns/form.html", campaign=campaign, organizations=organizations, title="Edit Campaign")
+    return render_template("campaigns/form.html", campaign=campaign, title="Edit Campaign")
 
 
 def save_campaign(campaign):
-    campaign.organization_id = form_int(request.form, "organization_id")
+    campaign.organization_id = g.active_organization.id
     campaign.name = form_text(request.form, "name") or "Untitled Campaign"
     campaign.description = form_text(request.form, "description")
     campaign.category = form_text(request.form, "category")

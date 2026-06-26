@@ -1,7 +1,8 @@
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, g, redirect, render_template, request, url_for
 
 from dispatch_center.forms import form_bool, form_int, form_text
-from dispatch_center.models import Campaign, Dispatch, MediaAsset, Organization, db
+from dispatch_center.models import Campaign, Dispatch, MediaAsset, db
+from dispatch_center.workspace import campaign_query, dispatch_query, media_asset_query
 
 
 media_bp = Blueprint("media", __name__, url_prefix="/media")
@@ -9,7 +10,7 @@ media_bp = Blueprint("media", __name__, url_prefix="/media")
 
 @media_bp.route("/")
 def list_assets():
-    assets = MediaAsset.query.order_by(MediaAsset.updated_at.desc()).all()
+    assets = media_asset_query().order_by(MediaAsset.updated_at.desc()).all()
     return render_template("media/list.html", assets=assets)
 
 
@@ -21,7 +22,7 @@ def create_asset():
         save_asset(asset)
         flash("Asset created.", "success")
         return redirect(url_for("media.list_assets"))
-    asset.organization_id = request.args.get("organization_id", type=int)
+    asset.organization_id = g.active_organization.id
     asset.campaign_id = request.args.get("campaign_id", type=int)
     asset.dispatch_id = request.args.get("dispatch_id", type=int)
     return render_template("media/form.html", asset=asset, title="New Asset", **choices)
@@ -29,7 +30,7 @@ def create_asset():
 
 @media_bp.route("/<int:asset_id>/edit", methods=["GET", "POST"])
 def edit_asset(asset_id):
-    asset = MediaAsset.query.get_or_404(asset_id)
+    asset = media_asset_query().filter(MediaAsset.id == asset_id).first_or_404()
     choices = relation_choices()
     if request.method == "POST":
         save_asset(asset)
@@ -40,16 +41,21 @@ def edit_asset(asset_id):
 
 def relation_choices():
     return {
-        "organizations": Organization.query.order_by(Organization.name).all(),
-        "campaigns": Campaign.query.order_by(Campaign.name).all(),
-        "dispatches": Dispatch.query.order_by(Dispatch.title).all(),
+        "campaigns": campaign_query().order_by(Campaign.name).all(),
+        "dispatches": dispatch_query().order_by(Dispatch.title).all(),
     }
 
 
 def save_asset(asset):
-    asset.organization_id = form_int(request.form, "organization_id")
-    asset.campaign_id = form_int(request.form, "campaign_id")
-    asset.dispatch_id = form_int(request.form, "dispatch_id")
+    campaign_id = form_int(request.form, "campaign_id")
+    dispatch_id = form_int(request.form, "dispatch_id")
+    if campaign_id:
+        campaign_query().filter(Campaign.id == campaign_id).first_or_404()
+    if dispatch_id:
+        dispatch_query().filter(Dispatch.id == dispatch_id).first_or_404()
+    asset.organization_id = g.active_organization.id
+    asset.campaign_id = campaign_id
+    asset.dispatch_id = dispatch_id
     asset.asset_type = form_text(request.form, "asset_type") or "Image"
     asset.title = form_text(request.form, "title") or "Untitled Asset"
     asset.url = form_text(request.form, "url")

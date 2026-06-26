@@ -4,7 +4,6 @@
 {% block content %}
 <header class="page-header"><div><p class="eyebrow">Campaign</p><h1>{{ title }}</h1></div></header>
 <form method="post" class="form-grid">
-    {{ select_input("organization_id", "Organization", organizations, campaign.organization_id) }}
     {{ text_input("name", "Name", campaign.name, required=True) }}
     {{ text_input("category", "Category", campaign.category) }}
     {{ text_input("status", "Status", campaign.status or "Planning") }}

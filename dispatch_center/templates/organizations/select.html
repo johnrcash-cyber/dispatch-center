@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Choose Organization | Dispatch Center{% endblock %}
+{% block content %}
+<header class="page-header">
+    <div>
+        <p class="eyebrow">Workspace</p>
+        <h1>Choose Organization</h1>
+    </div>
+    <a class="button primary" href="{{ url_for('organizations.create_organization') }}">New Organization</a>
+</header>
+
+<section class="organization-picker">
+    {% for organization in organizations %}
+        <form method="post" action="{{ url_for('organizations.set_active_organization_route', org_id=organization.id) }}" class="organization-card">
+            {% if organization.logo_url %}
+                <img src="{{ organization.logo_url }}" alt="">
+            {% else %}
+                <span class="workspace-fallback">{{ organization.name[:2]|upper }}</span>
+            {% endif %}
+            <div>
+                <h2>{{ organization.name }}</h2>
+                <p>{{ organization.description or "No description yet." }}</p>
+            </div>
+            <button class="button primary" type="submit">Enter Workspace</button>
+        </form>
+    {% else %}
+        <p>No organizations exist yet.</p>
+    {% endfor %}
+</section>
+{% endblock %}

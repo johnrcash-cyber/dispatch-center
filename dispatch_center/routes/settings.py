@@ -1,7 +1,8 @@
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, g, redirect, render_template, request, url_for
 
 from dispatch_center.forms import form_bool, form_int, form_text
-from dispatch_center.models import Organization, PlatformSetting, db
+from dispatch_center.models import PlatformSetting, db
+from dispatch_center.workspace import platform_setting_query
 
 
 settings_bp = Blueprint("settings", __name__, url_prefix="/settings")
@@ -9,35 +10,33 @@ settings_bp = Blueprint("settings", __name__, url_prefix="/settings")
 
 @settings_bp.route("/")
 def list_settings():
-    settings = PlatformSetting.query.order_by(PlatformSetting.platform_name).all()
+    settings = platform_setting_query().order_by(PlatformSetting.platform_name).all()
     return render_template("settings/list.html", settings=settings)
 
 
 @settings_bp.route("/new", methods=["GET", "POST"])
 def create_setting():
     setting = PlatformSetting()
-    organizations = Organization.query.order_by(Organization.name).all()
     if request.method == "POST":
         save_setting(setting)
         flash("Platform setting created.", "success")
         return redirect(url_for("settings.list_settings"))
-    setting.organization_id = request.args.get("organization_id", type=int)
-    return render_template("settings/form.html", setting=setting, organizations=organizations, title="New Platform Setting")
+    setting.organization_id = g.active_organization.id
+    return render_template("settings/form.html", setting=setting, title="New Platform Setting")
 
 
 @settings_bp.route("/<int:setting_id>/edit", methods=["GET", "POST"])
 def edit_setting(setting_id):
-    setting = PlatformSetting.query.get_or_404(setting_id)
-    organizations = Organization.query.order_by(Organization.name).all()
+    setting = platform_setting_query().filter(PlatformSetting.id == setting_id).first_or_404()
     if request.method == "POST":
         save_setting(setting)
         flash("Platform setting updated.", "success")
         return redirect(url_for("settings.list_settings"))
-    return render_template("settings/form.html", setting=setting, organizations=organizations, title="Edit Platform Setting")
+    return render_template("settings/form.html", setting=setting, title="Edit Platform Setting")
 
 
 def save_setting(setting):
-    setting.organization_id = form_int(request.form, "organization_id")
+    setting.organization_id = g.active_organization.id
     setting.platform_name = form_text(request.form, "platform_name") or "Website"
     setting.enabled = form_bool(request.form, "enabled")
     setting.destination_url = form_text(request.form, "destination_url")
