@@ -4,9 +4,11 @@ import click
 from flask import current_app
 from sqlalchemy import inspect, text
 
+from .utils import slugify
 from .models import (
     Campaign,
     Dispatch,
+    DispatchMedia,
     MediaAsset,
     Organization,
     PlatformSetting,
@@ -25,8 +27,11 @@ def register_seed_command(app):
     def upgrade_db():
         db.create_all()
         inspector = inspect(db.engine)
-        columns = {column["name"] for column in inspector.get_columns("media_asset")}
-        additions = {
+        organization_columns = {
+            column["name"] for column in inspector.get_columns("organization")
+        }
+        media_columns = {column["name"] for column in inspector.get_columns("media_asset")}
+        media_additions = {
             "source_type": "VARCHAR(80) DEFAULT 'External URL'",
             "filename": "VARCHAR(255)",
             "original_filename": "VARCHAR(255)",
@@ -35,10 +40,14 @@ def register_seed_command(app):
             "uploaded_at": "DATETIME",
         }
         with db.engine.begin() as connection:
-            for column, ddl in additions.items():
-                if column not in columns:
+            if "slug" not in organization_columns:
+                connection.execute(text("ALTER TABLE organization ADD COLUMN slug VARCHAR(180)"))
+                click.echo("Added organization.slug")
+            for column, ddl in media_additions.items():
+                if column not in media_columns:
                     connection.execute(text(f"ALTER TABLE media_asset ADD COLUMN {column} {ddl}"))
                     click.echo(f"Added media_asset.{column}")
+        backfill_organization_slugs()
         click.echo("Database upgraded.")
 
     @app.cli.command("seed")
@@ -48,6 +57,7 @@ def register_seed_command(app):
 
         org = Organization(
             name="Northstar Labs",
+            slug="northstar-labs",
             description="Example organization for testing Dispatch Center workflows.",
             website_url="https://example.com",
             logo_url="https://example.com/logo.png",
@@ -136,8 +146,6 @@ def register_seed_command(app):
         db.session.add(
             MediaAsset(
                 organization_id=org.id,
-                campaign_id=campaign.id,
-                dispatch_id=dispatch.id,
                 asset_type="Image",
                 source_type="External URL",
                 title="Release Hero",
@@ -185,3 +193,25 @@ def register_seed_command(app):
         db.session.commit()
 
         click.echo(f"Seeded {current_app.name} with example data.")
+
+
+def backfill_organization_slugs():
+    used_slugs = {
+        slug
+        for (slug,) in db.session.query(Organization.slug).filter(Organization.slug.isnot(None))
+    }
+    changed = False
+    for organization in Organization.query.order_by(Organization.id).all():
+        if organization.slug:
+            continue
+        base_slug = slugify(organization.name, f"organization-{organization.id}")
+        candidate = base_slug
+        suffix = 2
+        while candidate in used_slugs:
+            candidate = f"{base_slug}-{suffix}"
+            suffix += 1
+        organization.slug = candidate
+        used_slugs.add(candidate)
+        changed = True
+    if changed:
+        db.session.commit()

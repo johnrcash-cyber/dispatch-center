@@ -1,0 +1,82 @@
+{% from "media/_preview.html" import asset_preview %}
+
+<section class="dispatch-media">
+    <div class="section-header">
+        <h2>Media Assets</h2>
+        {% if dispatch.id %}
+            <a href="{{ url_for('media.create_asset') }}">Add to library</a>
+        {% endif %}
+    </div>
+
+    {% if dispatch.id %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Preview</th>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Usage</th>
+                        <th>Order</th>
+                        <th>Notes</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for link in dispatch.media_links %}
+                        <tr>
+                            <td>{{ asset_preview(link.media_asset, compact=True) }}</td>
+                            <td>{{ link.media_asset.title }}</td>
+                            <td>{{ link.media_asset.asset_type }}</td>
+                            <td>{{ link.usage_type }}</td>
+                            <td>{{ link.sort_order }}</td>
+                            <td>{{ link.notes or "" }}</td>
+                            <td>
+                                <form method="post" action="{{ url_for('dispatches.remove_dispatch_media', dispatch_id=dispatch.id, link_id=link.id) }}">
+                                    <button class="button" type="submit">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="7">No media assets selected yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if show_add_form %}
+            <form method="post" action="{{ url_for('dispatches.add_dispatch_media', dispatch_id=dispatch.id) }}" class="form-grid media-add-form">
+                <label>
+                    <span>Approved Media Asset</span>
+                    <select name="media_asset_id" required>
+                        <option value="">Choose...</option>
+                        {% for asset in approved_assets %}
+                            <option value="{{ asset.id }}">{{ asset.title }} - {{ asset.asset_type }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label>
+                    <span>Usage Type</span>
+                    <select name="usage_type">
+                        {% for usage_type in usage_types %}
+                            <option value="{{ usage_type }}">{{ usage_type }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label>
+                    <span>Sort Order</span>
+                    <input type="number" name="sort_order" value="0">
+                </label>
+                <label>
+                    <span>Notes</span>
+                    <input type="text" name="media_notes">
+                </label>
+                <div class="form-actions span-2">
+                    <button class="button primary" type="submit">Add Asset</button>
+                </div>
+            </form>
+        {% endif %}
+    {% else %}
+        <p>Save this dispatch before selecting media assets.</p>
+    {% endif %}
+</section>

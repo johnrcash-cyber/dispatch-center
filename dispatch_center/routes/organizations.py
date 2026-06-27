@@ -2,6 +2,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from dispatch_center.forms import form_text
 from dispatch_center.models import Organization, db
+from dispatch_center.utils import slugify
 from dispatch_center.workspace import set_active_organization
 
 
@@ -58,6 +59,10 @@ def edit_organization(org_id):
 
 def save_organization(organization):
     organization.name = form_text(request.form, "name") or "Untitled Organization"
+    organization.slug = unique_organization_slug(
+        form_text(request.form, "slug") or organization.name,
+        organization.id,
+    )
     organization.description = form_text(request.form, "description")
     organization.website_url = form_text(request.form, "website_url")
     organization.logo_url = form_text(request.form, "logo_url")
@@ -66,3 +71,19 @@ def save_organization(organization):
     organization.notes = form_text(request.form, "notes")
     db.session.add(organization)
     db.session.commit()
+
+
+def unique_organization_slug(value, current_id=None):
+    base_slug = slugify(value, "organization")
+    candidate = base_slug
+    suffix = 2
+    query = Organization.query.filter(Organization.slug == candidate)
+    if current_id:
+        query = query.filter(Organization.id != current_id)
+    while query.first() is not None:
+        candidate = f"{base_slug}-{suffix}"
+        suffix += 1
+        query = Organization.query.filter(Organization.slug == candidate)
+        if current_id:
+            query = query.filter(Organization.id != current_id)
+    return candidate

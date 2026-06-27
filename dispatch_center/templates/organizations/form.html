@@ -5,6 +5,7 @@
 <header class="page-header"><div><p class="eyebrow">Organization</p><h1>{{ title }}</h1></div></header>
 <form method="post" class="form-grid">
     {{ text_input("name", "Name", organization.name, required=True) }}
+    {{ text_input("slug", "Slug", organization.slug) }}
     {{ text_input("website_url", "Website URL", organization.website_url, type="url") }}
     {{ text_input("logo_url", "Logo URL", organization.logo_url, type="url") }}
     {{ textarea("description", "Description", organization.description) }}

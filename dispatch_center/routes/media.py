@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 
 from dispatch_center.forms import form_bool, form_text
 from dispatch_center.models import MediaAsset, db
+from dispatch_center.utils import slugify
 from dispatch_center.workspace import media_asset_query
 
 
@@ -119,12 +120,16 @@ def save_uploaded_file(asset, uploaded_file):
         flash(f"Files ending in .{extension or 'unknown'} are not supported.", "error")
         return
 
+    organization_slug = g.active_organization.slug or slugify(g.active_organization.name, "organization")
+    type_slug = slugify(asset.asset_type, "other")
     unique_filename = f"{uuid4().hex}_{original_filename}"
-    target = Path(current_app.config["UPLOAD_FOLDER"]) / unique_filename
+    relative_filename = Path(organization_slug) / type_slug / unique_filename
+    target = Path(current_app.config["UPLOAD_FOLDER"]) / relative_filename
+    target.parent.mkdir(parents=True, exist_ok=True)
     uploaded_file.save(target)
 
     asset.source_type = "Uploaded File"
-    asset.filename = unique_filename
+    asset.filename = relative_filename.as_posix()
     asset.original_filename = original_filename
     asset.file_size = target.stat().st_size
     asset.mime_type = uploaded_file.mimetype

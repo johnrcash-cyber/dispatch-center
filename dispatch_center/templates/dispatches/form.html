@@ -16,4 +16,7 @@
     {{ textarea("notes", "Notes", dispatch.notes) }}
     <div class="form-actions span-2"><button class="button primary" type="submit">Save Dispatch</button><a class="button" href="{{ url_for('dispatches.list_dispatches') }}">Cancel</a></div>
 </form>
+{% set show_add_form = true %}
+{% include "dispatches/_media_assets.html" with context %}
+{% include "dispatches/_preview.html" with context %}
 {% endblock %}

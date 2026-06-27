@@ -12,7 +12,7 @@
     </div>
 </header>
 <section class="detail-grid">
-    <div><h2>Profile</h2><p>{{ organization.description or "No description yet." }}</p><p><strong>CTA:</strong> {{ organization.default_cta or "None" }}</p><p><strong>Footer:</strong> {{ organization.default_footer or "None" }}</p></div>
+    <div><h2>Profile</h2><p>{{ organization.description or "No description yet." }}</p><p><strong>Slug:</strong> {{ organization.slug or "" }}</p><p><strong>CTA:</strong> {{ organization.default_cta or "None" }}</p><p><strong>Footer:</strong> {{ organization.default_footer or "None" }}</p></div>
     <div><h2>Notes</h2><p>{{ organization.notes or "No notes." }}</p>{% if organization.website_url %}<a href="{{ organization.website_url }}" target="_blank">Open website</a>{% endif %}</div>
 </section>
 <div class="section-header"><h2>Campaigns</h2></div>

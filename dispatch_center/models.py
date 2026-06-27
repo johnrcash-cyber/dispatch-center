@@ -16,6 +16,7 @@ class TimestampMixin:
 class Organization(TimestampMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(160), nullable=False)
+    slug = db.Column(db.String(180), nullable=True)
     description = db.Column(db.Text)
     website_url = db.Column(db.String(500))
     logo_url = db.Column(db.String(500))
@@ -71,6 +72,24 @@ class Dispatch(TimestampMixin, db.Model):
         "PlatformVersion", back_populates="dispatch", cascade="all, delete-orphan"
     )
     assets = db.relationship("MediaAsset", back_populates="dispatch")
+    media_links = db.relationship(
+        "DispatchMedia",
+        back_populates="dispatch",
+        cascade="all, delete-orphan",
+        order_by="DispatchMedia.sort_order",
+    )
+
+
+class DispatchMedia(TimestampMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    dispatch_id = db.Column(db.Integer, db.ForeignKey("dispatch.id"), nullable=False)
+    media_asset_id = db.Column(db.Integer, db.ForeignKey("media_asset.id"), nullable=False)
+    usage_type = db.Column(db.String(80), default="Supporting Asset")
+    sort_order = db.Column(db.Integer, default=0)
+    notes = db.Column(db.Text)
+
+    dispatch = db.relationship("Dispatch", back_populates="media_links")
+    media_asset = db.relationship("MediaAsset", back_populates="dispatch_links")
 
 
 class PlatformVersion(TimestampMixin, db.Model):
@@ -117,6 +136,9 @@ class MediaAsset(TimestampMixin, db.Model):
     organization = db.relationship("Organization", back_populates="assets")
     campaign = db.relationship("Campaign", back_populates="assets")
     dispatch = db.relationship("Dispatch", back_populates="assets")
+    dispatch_links = db.relationship(
+        "DispatchMedia", back_populates="media_asset", cascade="all, delete-orphan"
+    )
 
     @property
     def is_uploaded_file(self):

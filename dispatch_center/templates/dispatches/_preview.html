@@ -1,0 +1,166 @@
+{% macro asset_url(asset) -%}
+    {{ url_for('static', filename='uploads/' ~ asset.filename) if asset.filename else asset.url }}
+{%- endmacro %}
+
+{% macro linked_asset(link) %}
+    {% set asset = link.media_asset %}
+    {% set url = asset_url(asset)|trim %}
+    <div class="preview-asset-row">
+        <span class="asset-icon">
+            {% if asset.asset_type == "Video" %}VID
+            {% elif asset.asset_type == "Audio" %}AUD
+            {% elif asset.asset_type == "Document" %}DOC
+            {% elif asset.asset_type == "External Link" %}URL
+            {% else %}FILE
+            {% endif %}
+        </span>
+        <div>
+            <strong>{{ asset.title }}</strong>
+            <p>{{ link.notes or asset.alt_text or asset.original_filename or asset.url or "" }}</p>
+            {% if url %}<a href="{{ url }}" target="_blank">Open asset</a>{% endif %}
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro image_asset(link, class_name="") %}
+    {% set asset = link.media_asset %}
+    {% set url = asset_url(asset)|trim %}
+    {% if url %}
+        <figure class="{{ class_name }}">
+            <img src="{{ url }}" alt="{{ asset.alt_text or asset.title }}">
+            <figcaption>{{ asset.title }}</figcaption>
+        </figure>
+    {% endif %}
+{% endmacro %}
+
+{% set links = dispatch.media_links if dispatch.id else [] %}
+{% set hero_links = links|selectattr("usage_type", "equalto", "Hero Image")|list %}
+{% set banner_links = links|selectattr("usage_type", "equalto", "Banner")|list %}
+{% set thumbnail_links = links|selectattr("usage_type", "equalto", "Thumbnail")|list %}
+{% set gallery_links = links|selectattr("usage_type", "equalto", "Gallery")|list %}
+{% set attachment_links = links|selectattr("usage_type", "equalto", "Attachment")|list %}
+{% set video_links = links|selectattr("usage_type", "equalto", "Video")|list %}
+{% set audio_links = links|selectattr("usage_type", "equalto", "Audio")|list %}
+{% set logo_links = links|selectattr("usage_type", "equalto", "Logo")|list %}
+{% set support_links = links|selectattr("usage_type", "equalto", "Supporting Asset")|list %}
+
+<section class="dispatch-preview-section">
+    <div class="section-header">
+        <h2>Dispatch Preview</h2>
+    </div>
+    <article class="dispatch-preview-card">
+        {% if not links %}
+            <p class="empty-state">No media assets attached yet.</p>
+        {% endif %}
+
+        {% if logo_links %}
+            <div class="preview-logo-strip">
+                {% for link in logo_links %}
+                    {{ image_asset(link, "preview-logo") }}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% for link in hero_links %}
+            {{ image_asset(link, "preview-hero") }}
+        {% endfor %}
+
+        {% for link in banner_links %}
+            {{ image_asset(link, "preview-banner") }}
+        {% endfor %}
+
+        <header class="preview-title-row">
+            {% for link in thumbnail_links %}
+                {{ image_asset(link, "preview-thumbnail") }}
+            {% endfor %}
+            <div>
+                <p class="eyebrow">{{ dispatch.campaign.name if dispatch.campaign else "Dispatch" }}</p>
+                <h1>{{ dispatch.title or "Untitled Dispatch" }}</h1>
+                {% if dispatch.summary %}<p class="preview-summary">{{ dispatch.summary }}</p>{% endif %}
+            </div>
+        </header>
+
+        {% if dispatch.primary_body %}
+            <div class="preview-body">{{ dispatch.primary_body }}</div>
+        {% endif %}
+
+        {% if dispatch.short_version %}
+            <aside class="preview-short">
+                <strong>Short Version</strong>
+                <p>{{ dispatch.short_version }}</p>
+            </aside>
+        {% endif %}
+
+        {% if dispatch.call_to_action %}
+            <div class="preview-cta">{{ dispatch.call_to_action }}</div>
+        {% endif %}
+
+        {% if gallery_links %}
+            <section class="preview-block">
+                <h3>Gallery</h3>
+                <div class="preview-gallery">
+                    {% for link in gallery_links %}
+                        {{ image_asset(link, "preview-gallery-item") }}
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+        {% if video_links %}
+            <section class="preview-block">
+                <h3>Video</h3>
+                <div class="preview-stack">
+                    {% for link in video_links %}
+                        {% set url = asset_url(link.media_asset)|trim %}
+                        {% if link.media_asset.filename and url %}
+                            <video controls src="{{ url }}"></video>
+                        {% else %}
+                            {{ linked_asset(link) }}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+        {% if audio_links %}
+            <section class="preview-block">
+                <h3>Audio</h3>
+                <div class="preview-stack">
+                    {% for link in audio_links %}
+                        {% set url = asset_url(link.media_asset)|trim %}
+                        {% if link.media_asset.filename and url %}
+                            <div class="preview-audio">
+                                <strong>{{ link.media_asset.title }}</strong>
+                                <audio controls src="{{ url }}"></audio>
+                            </div>
+                        {% else %}
+                            {{ linked_asset(link) }}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+        {% if attachment_links %}
+            <section class="preview-block">
+                <h3>Attachments</h3>
+                <div class="preview-stack">
+                    {% for link in attachment_links %}
+                        {{ linked_asset(link) }}
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+        {% if support_links %}
+            <section class="preview-block">
+                <h3>Supporting Assets</h3>
+                <div class="preview-stack">
+                    {% for link in support_links %}
+                        {{ linked_asset(link) }}
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+    </article>
+</section>
