@@ -2,63 +2,54 @@
 {% from "macros.html" import status_badge %}
 {% block title %}Publishing Queue | Dispatch Center{% endblock %}
 {% block content %}
-<header class="page-header"><div><p class="eyebrow">Manual Publishing</p><h1>Publishing Queue</h1></div></header>
-<div class="queue-list">
-{% for item in queue_items %}
-    {% set media = namespace(urls=[]) %}
-    {% for link in item.dispatch.media_links %}
-        {% if link.media_asset.filename %}
-            {% set media.urls = media.urls + [url_for('static', filename='uploads/' ~ link.media_asset.filename, _external=True)] %}
-        {% elif link.media_asset.url %}
-            {% set media.urls = media.urls + [link.media_asset.url] %}
-        {% endif %}
-    {% endfor %}
-    <article class="queue-item">
-        <div class="queue-heading">
-            <div>
-                <p class="eyebrow">{{ item.dispatch.campaign.organization.name }} / {{ item.dispatch.campaign.name }}</p>
-                <h2>{{ item.platform_name }}: {{ item.dispatch.title }}</h2>
-            </div>
-            {{ status_badge(item.status) }}
-        </div>
-        <div class="copy-grid">
-            <button class="button" data-copy="{{ item.dispatch.title }}">Copy Title</button>
-            <button class="button" data-copy="{{ item.dispatch.primary_body or '' }}">Copy Body</button>
-            <button class="button" data-copy="{{ item.dispatch.call_to_action or '' }}">Copy CTA</button>
-            <button class="button" data-copy="{{ media.urls|join('\n') }}">Copy Media URLs</button>
-            {% if item.destination_url %}<a class="button" href="{{ item.destination_url }}" target="_blank">Open Destination</a>{% endif %}
-        </div>
-        <p><strong>CTA:</strong> {{ item.dispatch.call_to_action or "" }}</p>
-        {% if media.urls %}
-            <p><strong>Media URLs:</strong></p>
-            <pre>{{ media.urls|join('\n') }}</pre>
-        {% endif %}
-        <pre>{{ item.dispatch.primary_body or item.dispatch.summary or "No body text yet." }}</pre>
-        <p><strong>Destination:</strong> {% if item.destination_url %}<a href="{{ item.destination_url }}" target="_blank">{{ item.destination_url }}</a>{% else %}None{% endif %}</p>
-        <p><strong>Posted URL:</strong> {% if item.posted_url %}<a href="{{ item.posted_url }}" target="_blank">{{ item.posted_url }}</a>{% else %}Not posted{% endif %}</p>
-        <p><strong>Posted At:</strong> {{ item.posted_at or "" }}</p>
-        <p><strong>Notes:</strong> {{ item.notes or "" }}</p>
-        {% if item.status != "Published" %}
-            <form method="post" action="{{ url_for('queue.save_posted_url', item_id=item.id) }}" class="publish-form">
-                <input type="url" name="posted_url" value="{{ item.posted_url or '' }}" placeholder="Posted URL">
-                <input type="text" name="notes" value="{{ item.notes or '' }}" placeholder="Notes">
-                <button class="button" type="submit">Save Posted URL</button>
-            </form>
-            <form method="post" action="{{ url_for('queue.mark_published', item_id=item.id) }}" class="publish-form">
-                <input type="hidden" name="posted_url" value="{{ item.posted_url or '' }}">
-                <input type="hidden" name="notes" value="{{ item.notes or '' }}">
-                <button class="button primary" type="submit">Mark as Published</button>
-            </form>
-            {% if item.status != "Skipped" %}
-                <form method="post" action="{{ url_for('queue.skip_item', item_id=item.id) }}" class="publish-form">
-                    <input type="hidden" name="notes" value="{{ item.notes or '' }}">
-                    <button class="button" type="submit">Skip</button>
-                </form>
-            {% endif %}
-        {% endif %}
-    </article>
-{% else %}
-    <p>No publishing queue items yet.</p>
-{% endfor %}
+<header class="page-header">
+    <div>
+        <h1>Publishing Queue</h1>
+        <p class="section-note">Review queued dispatches and open an item to copy, post, and track it.</p>
+    </div>
+</header>
+
+{% if queue_items %}
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Status</th>
+                <th>Campaign</th>
+                <th>Dispatch Title</th>
+                <th>Platform</th>
+                <th>Target/Destination</th>
+                <th>Created At</th>
+                <th>Posted At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in queue_items %}
+            <tr>
+                <td>{{ status_badge(item.status) }}</td>
+                <td>{{ item.dispatch.campaign.name }}</td>
+                <td><a href="{{ url_for('queue.queue_item_detail', item_id=item.id) }}">{{ item.dispatch.title }}</a></td>
+                <td>{{ item.platform_name }}</td>
+                <td>
+                    {% if item.destination_url %}
+                        <a href="{{ item.destination_url }}" target="_blank">{{ item.destination_url }}</a>
+                    {% else %}
+                        None
+                    {% endif %}
+                </td>
+                <td>{{ item.created_at.strftime("%Y-%m-%d %H:%M") if item.created_at else "" }}</td>
+                <td>{{ item.posted_at.strftime("%Y-%m-%d %H:%M") if item.posted_at else "" }}</td>
+                <td><a class="button" href="{{ url_for('queue.queue_item_detail', item_id=item.id) }}">Open</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
+{% else %}
+<section class="empty-panel">
+    <p>No publishing queue items yet.</p>
+    <a class="button primary" href="{{ url_for('dispatches.list_dispatches') }}">Go to Dispatches</a>
+</section>
+{% endif %}
 {% endblock %}

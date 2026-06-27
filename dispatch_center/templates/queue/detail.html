@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% from "macros.html" import status_badge %}
+{% block title %}{{ item.dispatch.title }} | Publishing Queue | Dispatch Center{% endblock %}
+{% block content %}
+{% macro asset_url(asset) -%}
+    {{ url_for('static', filename='uploads/' ~ asset.filename) if asset.filename else asset.url }}
+{%- endmacro %}
+
+{% macro image_figure(link, class_name="") %}
+    {% set asset = link.media_asset %}
+    {% set url = asset_url(asset)|trim %}
+    {% if url and asset.asset_type == "Image" %}
+        <figure class="{{ class_name }}">
+            <img src="{{ url }}" alt="{{ asset.alt_text or asset.title }}">
+            <figcaption>{{ asset.title }}</figcaption>
+        </figure>
+    {% endif %}
+{% endmacro %}
+
+{% macro linked_asset(link) %}
+    {% set asset = link.media_asset %}
+    {% set url = asset_url(asset)|trim %}
+    <div class="preview-asset-row">
+        <span class="asset-icon">
+            {% if asset.asset_type == "Video" %}VID
+            {% elif asset.asset_type == "Audio" %}AUD
+            {% elif asset.asset_type == "Document" %}DOC
+            {% elif asset.asset_type == "External Link" %}URL
+            {% else %}FILE
+            {% endif %}
+        </span>
+        <div>
+            <strong>{{ asset.title }}</strong>
+            <p>{{ link.notes or asset.alt_text or asset.original_filename or asset.url or "" }}</p>
+            {% if url %}<a href="{{ url }}" target="_blank">Open asset</a>{% endif %}
+        </div>
+    </div>
+{% endmacro %}
+
+<header class="page-header">
+    <div>
+        <h1>{{ item.dispatch.title }}</h1>
+        <p class="section-note">{{ item.platform_name }} publishing work item</p>
+    </div>
+    <a class="button" href="{{ url_for('queue.publishing_queue') }}">Back to Queue</a>
+</header>
+
+<section class="detail-grid">
+    <div>
+        <h2>Queue Item</h2>
+        <p><strong>Campaign:</strong> {{ item.dispatch.campaign.name }}</p>
+        <p><strong>Dispatch:</strong> <a href="{{ url_for('dispatches.detail_dispatch', dispatch_id=item.dispatch.id) }}">{{ item.dispatch.title }}</a></p>
+        <p><strong>Platform:</strong> {{ item.platform_name }}</p>
+        <p><strong>Status:</strong> {{ status_badge(item.status) }}</p>
+    </div>
+    <div>
+        <h2>Publishing Info</h2>
+        <p><strong>Destination URL:</strong> {% if item.destination_url %}<a href="{{ item.destination_url }}" target="_blank">{{ item.destination_url }}</a>{% else %}None{% endif %}</p>
+        <p><strong>Posted URL:</strong> {% if item.posted_url %}<a href="{{ item.posted_url }}" target="_blank">{{ item.posted_url }}</a>{% else %}Not posted{% endif %}</p>
+        <p><strong>Posted At:</strong> {{ item.posted_at.strftime("%Y-%m-%d %H:%M") if item.posted_at else "" }}</p>
+        <p><strong>Notes:</strong> {{ item.notes or "" }}</p>
+    </div>
+</section>
+
+<section class="queue-workbench">
+    <div class="copy-grid">
+        <button class="button primary" data-copy="{{ full_post }}">Copy Full Post</button>
+        <button class="button" data-copy="{{ item.dispatch.title }}">Copy Title</button>
+        <button class="button" data-copy="{{ item.dispatch.primary_body or '' }}">Copy Body</button>
+        <button class="button" data-copy="{{ item.dispatch.call_to_action or '' }}">Copy CTA</button>
+        <button class="button" data-copy="{{ media_urls|join('\n') }}">Copy Media URLs</button>
+        {% if item.destination_url %}<a class="button" href="{{ item.destination_url }}" target="_blank">Open Destination</a>{% endif %}
+    </div>
+
+    <form method="post" action="{{ url_for('queue.save_posted_url', item_id=item.id) }}" class="publish-form">
+        <input type="url" name="posted_url" value="{{ item.posted_url or '' }}" placeholder="Posted URL">
+        <input type="text" name="notes" value="{{ item.notes or '' }}" placeholder="Notes">
+        <button class="button" type="submit">Save Posted URL</button>
+    </form>
+
+    {% if item.status != "Published" %}
+        <form method="post" action="{{ url_for('queue.mark_published', item_id=item.id) }}" class="publish-form">
+            <input type="hidden" name="posted_url" value="{{ item.posted_url or '' }}">
+            <input type="hidden" name="notes" value="{{ item.notes or '' }}">
+            <button class="button primary" type="submit">Mark as Published</button>
+        </form>
+    {% endif %}
+
+    {% if item.status not in ["Published", "Skipped"] %}
+        <form method="post" action="{{ url_for('queue.skip_item', item_id=item.id) }}" class="publish-form">
+            <input type="hidden" name="notes" value="{{ item.notes or '' }}">
+            <button class="button" type="submit">Skip</button>
+        </form>
+    {% endif %}
+</section>
+
+<section class="queue-detail-preview">
+    <article class="dispatch-preview-card queue-final-preview">
+        <p class="eyebrow">{{ item.platform_name }}</p>
+
+        {% for link in media_groups["Hero Image"] %}
+            {{ image_figure(link, "preview-hero") }}
+        {% endfor %}
+
+        {% for link in media_groups["Banner"] %}
+            {{ image_figure(link, "preview-banner") }}
+        {% endfor %}
+
+        <header class="preview-title-row">
+            {% for link in media_groups["Thumbnail"] %}
+                {{ image_figure(link, "preview-thumbnail") }}
+            {% endfor %}
+            <div>
+                <h1>{{ item.dispatch.title }}</h1>
+                {% if item.dispatch.summary %}<p class="preview-summary">{{ item.dispatch.summary }}</p>{% endif %}
+            </div>
+        </header>
+
+        {% if item.dispatch.primary_body %}
+            <div class="preview-body">{{ item.dispatch.primary_body }}</div>
+        {% endif %}
+
+        {% if item.dispatch.call_to_action %}
+            <div class="preview-cta">{{ item.dispatch.call_to_action }}</div>
+        {% endif %}
+
+        {% if media_groups["Gallery"] %}
+            <section class="preview-block">
+                <h3>Media Gallery</h3>
+                <div class="preview-gallery">
+                    {% for link in media_groups["Gallery"] %}
+                        {{ image_figure(link, "preview-gallery-item") }}
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+        {% if media_groups["Supporting Asset"] %}
+            <section class="preview-block">
+                <h3>Supporting Assets</h3>
+                <div class="preview-stack">
+                    {% for link in media_groups["Supporting Asset"] %}
+                        {{ linked_asset(link) }}
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+        {% if media_groups["Video"] %}
+            <section class="preview-block">
+                <h3>Video</h3>
+                <div class="preview-stack">
+                    {% for link in media_groups["Video"] %}
+                        {% set url = asset_url(link.media_asset)|trim %}
+                        {% if link.media_asset.filename and url %}
+                            <video controls src="{{ url }}"></video>
+                        {% else %}
+                            {{ linked_asset(link) }}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+        {% if media_groups["Audio"] %}
+            <section class="preview-block">
+                <h3>Audio</h3>
+                <div class="preview-stack">
+                    {% for link in media_groups["Audio"] %}
+                        {% set url = asset_url(link.media_asset)|trim %}
+                        {% if link.media_asset.filename and url %}
+                            <div class="preview-audio">
+                                <strong>{{ link.media_asset.title }}</strong>
+                                <audio controls src="{{ url }}"></audio>
+                            </div>
+                        {% else %}
+                            {{ linked_asset(link) }}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+        {% if media_groups["Attachment"] %}
+            <section class="preview-block">
+                <h3>Attachments</h3>
+                <div class="preview-stack">
+                    {% for link in media_groups["Attachment"] %}
+                        {{ linked_asset(link) }}
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+        {% if item.destination_url %}<p><strong>Destination:</strong> <a href="{{ item.destination_url }}" target="_blank">{{ item.destination_url }}</a></p>{% endif %}
+        {% if item.platform_setting and item.platform_setting.default_hashtags %}<p><strong>Hashtags:</strong> {{ item.platform_setting.default_hashtags }}</p>{% endif %}
+        {% if item.platform_setting and item.platform_setting.default_footer %}<p><strong>Footer:</strong> {{ item.platform_setting.default_footer }}</p>{% endif %}
+    </article>
+</section>
+
+{% if media_urls %}
+<section class="media-url-panel">
+    <div class="section-header">
+        <h2>Media URLs</h2>
+    </div>
+    <pre>{{ media_urls|join('\n') }}</pre>
+</section>
+{% endif %}
+{% endblock %}

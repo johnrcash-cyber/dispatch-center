@@ -121,6 +121,32 @@ pre { background: #0d1115; border: 1px solid var(--line); border-radius: var(--r
 .section-note { margin: 0; color: var(--muted); }
 .queue-list { display: grid; gap: 16px; }
 .publish-form input { max-width: 420px; }
+.empty-panel {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--panel);
+    padding: 22px;
+    display: grid;
+    gap: 14px;
+    justify-items: start;
+}
+.empty-panel p { margin: 0; color: var(--muted); }
+.queue-workbench {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--panel);
+    padding: 18px;
+    display: grid;
+    gap: 14px;
+    margin-bottom: 28px;
+}
+.queue-detail-preview,
+.media-url-panel {
+    margin-bottom: 28px;
+}
+.queue-final-preview {
+    max-width: 1040px;
+}
 .organization-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
 .organization-card {
     display: grid;
