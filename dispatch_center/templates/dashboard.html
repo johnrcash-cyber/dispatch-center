@@ -13,8 +13,8 @@
 <section class="metric-grid">
     <a class="metric" href="{{ url_for('campaigns.list_campaigns') }}"><span>{{ counts.campaigns }}</span>Campaigns</a>
     <a class="metric" href="{{ url_for('dispatches.list_dispatches') }}"><span>{{ counts.dispatches }}</span>Dispatches</a>
-    <a class="metric" href="{{ url_for('platform_versions.list_platform_versions') }}"><span>{{ counts.platform_versions }}</span>Platform Versions</a>
-    <a class="metric" href="{{ url_for('queue.publishing_queue') }}"><span>{{ counts.queue }}</span>Queued Versions</a>
+    <a class="metric" href="{{ url_for('media.list_assets') }}"><span>{{ counts.assets }}</span>Media Assets</a>
+    <a class="metric" href="{{ url_for('queue.publishing_queue') }}"><span>{{ counts.queue }}</span>Queue Items</a>
 </section>
 
 <section class="split">
@@ -49,11 +49,11 @@
             <table>
                 <thead><tr><th>Platform</th><th>Dispatch</th><th>Status</th></tr></thead>
                 <tbody>
-                    {% for version in queue_items %}
+                    {% for item in queue_items %}
                     <tr>
-                        <td>{{ version.platform_name }}</td>
-                        <td>{{ version.dispatch.title }}</td>
-                        <td>{{ status_badge(version.status) }}</td>
+                        <td>{{ item.platform_name }}</td>
+                        <td>{{ item.dispatch.title }}</td>
+                        <td>{{ status_badge(item.status) }}</td>
                     </tr>
                     {% else %}
                     <tr><td colspan="3">Nothing waiting to publish.</td></tr>

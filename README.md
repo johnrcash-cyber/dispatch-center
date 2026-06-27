@@ -1,6 +1,6 @@
 # Dispatch Center
 
-Dispatch Center is a standalone Flask prototype for planning communications, adapting dispatches for each platform, and tracking manual publishing.
+Dispatch Center is a standalone Flask prototype for planning communications, managing reusable dispatch content, and tracking manual publishing.
 
 ## Setup
 
@@ -17,7 +17,7 @@ $env:FLASK_APP = "run.py"
 flask seed
 ```
 
-The seed command creates a sample organization, campaign, dispatch, platform versions, media asset, and platform settings.
+The seed command creates a sample organization, campaign, dispatch, media asset, platform settings, and publishing queue items.
 
 For an existing local database, apply non-destructive schema updates with:
 
@@ -41,7 +41,6 @@ Open `http://127.0.0.1:5055`.
 - Organizations list, detail, create, edit
 - Campaigns list, detail, create, edit
 - Dispatches list, detail, create, edit
-- Platform versions list, create, edit
 - Media library list, create, edit
 - Media assets can be uploaded locally to `dispatch_center/static/uploads/<organization-slug>/<asset-type>/` or tracked as external URLs
 - Publishing queue with copy controls, destination links, posted URL entry, and mark-published action
@@ -50,6 +49,6 @@ Open `http://127.0.0.1:5055`.
 ## Notes For Future Work
 
 - Authentication can be added at the app factory or blueprint level.
-- Publishing APIs and webhooks belong behind service modules called from queue or platform-version actions.
+- Publishing APIs and webhooks belong behind service modules called from queue actions.
 - Scheduling can be introduced as a separate queue/status layer without changing the core hierarchy.
-- Publishing history/version history should be added before automated posting.
+- Publishing history should be added before automated posting.

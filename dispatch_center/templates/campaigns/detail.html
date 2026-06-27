@@ -5,9 +5,9 @@
 <header class="page-header"><div><p class="eyebrow">{{ campaign.organization.name }}</p><h1>{{ campaign.name }}</h1></div><a class="button" href="{{ url_for('campaigns.edit_campaign', campaign_id=campaign.id) }}">Edit</a></header>
 <section class="detail-grid"><div><h2>Campaign</h2><p>{{ campaign.description or "No description yet." }}</p><p><strong>Status:</strong> {{ status_badge(campaign.status) }}</p><p><strong>Owner:</strong> {{ campaign.owner or "Unassigned" }}</p><p><strong>Tags:</strong> {{ campaign.tags or "" }}</p></div><div><h2>Dates</h2><p><strong>Start:</strong> {{ campaign.start_date or "" }}</p><p><strong>Target Publish:</strong> {{ campaign.target_publish_date or "" }}</p><p>{{ campaign.notes or "No notes." }}</p></div></section>
 <div class="section-header"><h2>Dispatches</h2><a href="{{ url_for('dispatches.create_dispatch', campaign_id=campaign.id) }}">Add dispatch</a></div>
-<div class="table-wrap"><table><thead><tr><th>Title</th><th>Status</th><th>Versions</th></tr></thead><tbody>
+<div class="table-wrap"><table><thead><tr><th>Title</th><th>Status</th><th>Queue Items</th></tr></thead><tbody>
 {% for dispatch in campaign.dispatches %}
-<tr><td><a href="{{ url_for('dispatches.detail_dispatch', dispatch_id=dispatch.id) }}">{{ dispatch.title }}</a></td><td>{{ status_badge(dispatch.status) }}</td><td>{{ dispatch.platform_versions|length }}</td></tr>
+<tr><td><a href="{{ url_for('dispatches.detail_dispatch', dispatch_id=dispatch.id) }}">{{ dispatch.title }}</a></td><td>{{ status_badge(dispatch.status) }}</td><td>{{ dispatch.queue_items|length }}</td></tr>
 {% else %}<tr><td colspan="3">No dispatches yet.</td></tr>{% endfor %}
 </tbody></table></div>
 {% endblock %}

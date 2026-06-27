@@ -68,8 +68,8 @@ class Dispatch(TimestampMixin, db.Model):
     notes = db.Column(db.Text)
 
     campaign = db.relationship("Campaign", back_populates="dispatches")
-    platform_versions = db.relationship(
-        "PlatformVersion", back_populates="dispatch", cascade="all, delete-orphan"
+    queue_items = db.relationship(
+        "PublishingQueueItem", back_populates="dispatch", cascade="all, delete-orphan"
     )
     assets = db.relationship("MediaAsset", back_populates="dispatch")
     media_links = db.relationship(
@@ -90,29 +90,6 @@ class DispatchMedia(TimestampMixin, db.Model):
 
     dispatch = db.relationship("Dispatch", back_populates="media_links")
     media_asset = db.relationship("MediaAsset", back_populates="dispatch_links")
-
-
-class PlatformVersion(TimestampMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    dispatch_id = db.Column(db.Integer, db.ForeignKey("dispatch.id"), nullable=False)
-    platform_name = db.Column(db.String(120), nullable=False)
-    status = db.Column(db.String(80), default="Draft")
-    platform_title = db.Column(db.String(240))
-    platform_body = db.Column(db.Text)
-    short_text = db.Column(db.Text)
-    call_to_action = db.Column(db.Text)
-    selected_image_urls = db.Column(db.Text)
-    hashtags = db.Column(db.String(500))
-    formatting_notes = db.Column(db.Text)
-    destination_url = db.Column(db.String(500))
-    posted_url = db.Column(db.String(500))
-    posted_at = db.Column(db.DateTime)
-
-    dispatch = db.relationship("Dispatch", back_populates="platform_versions")
-
-    @property
-    def is_published(self):
-        return self.status == "Published"
 
 
 class MediaAsset(TimestampMixin, db.Model):
@@ -165,3 +142,19 @@ class PlatformSetting(TimestampMixin, db.Model):
     notes = db.Column(db.Text)
 
     organization = db.relationship("Organization", back_populates="platform_settings")
+    queue_items = db.relationship("PublishingQueueItem", back_populates="platform_setting")
+
+
+class PublishingQueueItem(TimestampMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    dispatch_id = db.Column(db.Integer, db.ForeignKey("dispatch.id"), nullable=False)
+    platform_setting_id = db.Column(db.Integer, db.ForeignKey("platform_setting.id"))
+    platform_name = db.Column(db.String(120), nullable=False)
+    status = db.Column(db.String(80), default="Queued")
+    destination_url = db.Column(db.String(500))
+    posted_url = db.Column(db.String(500))
+    posted_at = db.Column(db.DateTime)
+    notes = db.Column(db.Text)
+
+    dispatch = db.relationship("Dispatch", back_populates="queue_items")
+    platform_setting = db.relationship("PlatformSetting", back_populates="queue_items")

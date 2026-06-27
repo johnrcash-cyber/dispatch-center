@@ -1,8 +1,22 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from dispatch_center.forms import form_int, form_text
-from dispatch_center.models import Campaign, Dispatch, DispatchMedia, MediaAsset, db
-from dispatch_center.workspace import campaign_query, dispatch_query, media_asset_query
+from dispatch_center.models import (
+    Campaign,
+    Dispatch,
+    DispatchMedia,
+    MediaAsset,
+    PlatformSetting,
+    PublishingQueueItem,
+    db,
+)
+from dispatch_center.workspace import (
+    campaign_query,
+    dispatch_query,
+    media_asset_query,
+    platform_setting_query,
+    publishing_queue_query,
+)
 
 
 dispatches_bp = Blueprint("dispatches", __name__, url_prefix="/dispatches")
@@ -18,6 +32,8 @@ USAGE_TYPES = [
     "Logo",
     "Supporting Asset",
 ]
+
+ASSET_TYPES = ["Image", "Video", "Audio", "Document", "External Link", "Other"]
 
 
 @dispatches_bp.route("/")
@@ -41,7 +57,7 @@ def create_dispatch():
 @dispatches_bp.route("/<int:dispatch_id>")
 def detail_dispatch(dispatch_id):
     dispatch = dispatch_query().filter(Dispatch.id == dispatch_id).first_or_404()
-    return render_template("dispatches/detail.html", dispatch=dispatch, usage_types=USAGE_TYPES)
+    return render_dispatch_detail(dispatch)
 
 
 @dispatches_bp.route("/<int:dispatch_id>/edit", methods=["GET", "POST"])
@@ -89,10 +105,40 @@ def remove_dispatch_media(dispatch_id, link_id):
     return redirect(url_for("dispatches.edit_dispatch", dispatch_id=dispatch.id))
 
 
+@dispatches_bp.route("/<int:dispatch_id>/queue/<int:setting_id>", methods=["POST"])
+def add_publishing_target(dispatch_id, setting_id):
+    dispatch = dispatch_query().filter(Dispatch.id == dispatch_id).first_or_404()
+    setting = (
+        platform_setting_query()
+        .filter(PlatformSetting.id == setting_id, PlatformSetting.enabled.is_(True))
+        .first_or_404()
+    )
+    existing = publishing_queue_query().filter(
+        PublishingQueueItem.dispatch_id == dispatch.id,
+        PublishingQueueItem.platform_setting_id == setting.id,
+        PublishingQueueItem.status != "Published",
+    ).first()
+    if existing:
+        flash(f"{setting.platform_name} is already in the queue.", "success")
+        return redirect(url_for("dispatches.detail_dispatch", dispatch_id=dispatch.id))
+
+    item = PublishingQueueItem(
+        dispatch_id=dispatch.id,
+        platform_setting_id=setting.id,
+        platform_name=setting.platform_name,
+        status="Queued",
+        destination_url=setting.destination_url,
+        notes=form_text(request.form, "queue_notes"),
+    )
+    db.session.add(item)
+    db.session.commit()
+    flash(f"{setting.platform_name} added to the publishing queue.", "success")
+    return redirect(url_for("dispatches.detail_dispatch", dispatch_id=dispatch.id))
+
+
 def render_dispatch_form(dispatch, campaigns, title):
-    approved_assets = (
+    media_assets = (
         media_asset_query()
-        .filter(MediaAsset.approved.is_(True))
         .order_by(MediaAsset.title)
         .all()
     )
@@ -100,9 +146,33 @@ def render_dispatch_form(dispatch, campaigns, title):
         "dispatches/form.html",
         dispatch=dispatch,
         campaigns=campaigns,
-        approved_assets=approved_assets,
+        media_assets=media_assets,
         usage_types=USAGE_TYPES,
+        asset_types=ASSET_TYPES,
         title=title,
+    )
+
+
+def render_dispatch_detail(dispatch):
+    platform_settings = (
+        platform_setting_query()
+        .filter(PlatformSetting.enabled.is_(True))
+        .order_by(PlatformSetting.platform_name)
+        .all()
+    )
+    open_queue_items = publishing_queue_query().filter(
+        PublishingQueueItem.dispatch_id == dispatch.id,
+        PublishingQueueItem.status != "Published",
+    ).all()
+    queued_setting_ids = {
+        item.platform_setting_id for item in open_queue_items if item.platform_setting_id
+    }
+    return render_template(
+        "dispatches/detail.html",
+        dispatch=dispatch,
+        usage_types=USAGE_TYPES,
+        platform_settings=platform_settings,
+        queued_setting_ids=queued_setting_ids,
     )
 
 

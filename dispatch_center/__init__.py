@@ -29,7 +29,6 @@ def create_app(config_object=None):
     from .routes.main import main_bp
     from .routes.media import media_bp
     from .routes.organizations import organizations_bp
-    from .routes.platform_versions import platform_versions_bp
     from .routes.queue import queue_bp
     from .routes.settings import settings_bp
 
@@ -37,7 +36,6 @@ def create_app(config_object=None):
     app.register_blueprint(organizations_bp)
     app.register_blueprint(campaigns_bp)
     app.register_blueprint(dispatches_bp)
-    app.register_blueprint(platform_versions_bp)
     app.register_blueprint(media_bp)
     app.register_blueprint(queue_bp)
     app.register_blueprint(settings_bp)

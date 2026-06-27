@@ -1,6 +1,13 @@
 from flask import g, redirect, request, session, url_for
 
-from .models import Campaign, Dispatch, MediaAsset, Organization, PlatformSetting, PlatformVersion
+from .models import (
+    Campaign,
+    Dispatch,
+    MediaAsset,
+    Organization,
+    PlatformSetting,
+    PublishingQueueItem,
+)
 
 
 PUBLIC_ENDPOINTS = {
@@ -57,14 +64,6 @@ def dispatch_query():
     return Dispatch.query.join(Campaign).filter(Campaign.organization_id == g.active_organization.id)
 
 
-def platform_version_query():
-    return (
-        PlatformVersion.query.join(Dispatch)
-        .join(Campaign)
-        .filter(Campaign.organization_id == g.active_organization.id)
-    )
-
-
 def media_asset_query():
     return MediaAsset.query.filter(MediaAsset.organization_id == g.active_organization.id)
 
@@ -72,4 +71,12 @@ def media_asset_query():
 def platform_setting_query():
     return PlatformSetting.query.filter(
         PlatformSetting.organization_id == g.active_organization.id
+    )
+
+
+def publishing_queue_query():
+    return (
+        PublishingQueueItem.query.join(Dispatch)
+        .join(Campaign)
+        .filter(Campaign.organization_id == g.active_organization.id)
     )

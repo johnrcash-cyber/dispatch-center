@@ -1,16 +1,14 @@
 from flask import Blueprint, g, render_template
 
 from dispatch_center.models import (
-    Campaign,
     Dispatch,
-    MediaAsset,
-    PlatformVersion,
+    PublishingQueueItem,
 )
 from dispatch_center.workspace import (
     campaign_query,
     dispatch_query,
     media_asset_query,
-    platform_version_query,
+    publishing_queue_query,
 )
 
 
@@ -23,14 +21,13 @@ def dashboard():
     counts = {
         "campaigns": campaign_query().count(),
         "dispatches": dispatch_query().count(),
-        "platform_versions": platform_version_query().count(),
         "assets": media_asset_query().count(),
-        "queue": platform_version_query().filter(PlatformVersion.status != "Published").count(),
+        "queue": publishing_queue_query().filter(PublishingQueueItem.status != "Published").count(),
     }
     recent_dispatches = dispatch_query().order_by(Dispatch.updated_at.desc()).limit(5).all()
     queue_items = (
-        platform_version_query().filter(PlatformVersion.status != "Published")
-        .order_by(PlatformVersion.updated_at.desc())
+        publishing_queue_query().filter(PublishingQueueItem.status != "Published")
+        .order_by(PublishingQueueItem.updated_at.desc())
         .limit(5)
         .all()
     )

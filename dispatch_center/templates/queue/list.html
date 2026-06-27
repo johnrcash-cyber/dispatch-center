@@ -4,30 +4,35 @@
 {% block content %}
 <header class="page-header"><div><p class="eyebrow">Manual Publishing</p><h1>Publishing Queue</h1></div></header>
 <div class="queue-list">
-{% for version in versions %}
+{% for item in queue_items %}
     <article class="queue-item">
         <div class="queue-heading">
             <div>
-                <p class="eyebrow">{{ version.dispatch.campaign.organization.name }} / {{ version.dispatch.campaign.name }}</p>
-                <h2>{{ version.platform_name }}: {{ version.platform_title or version.dispatch.title }}</h2>
+                <p class="eyebrow">{{ item.dispatch.campaign.organization.name }} / {{ item.dispatch.campaign.name }}</p>
+                <h2>{{ item.platform_name }}: {{ item.dispatch.title }}</h2>
             </div>
-            {{ status_badge(version.status) }}
+            {{ status_badge(item.status) }}
         </div>
         <div class="copy-grid">
-            <button class="button" data-copy="{{ version.platform_title or version.dispatch.title }}">Copy Title</button>
-            <button class="button" data-copy="{{ version.platform_body or '' }}">Copy Body</button>
-            <button class="button" data-copy="{{ version.selected_image_urls or '' }}">Copy Image URLs</button>
-            {% if version.destination_url %}<a class="button" href="{{ version.destination_url }}" target="_blank">Open Destination</a>{% endif %}
+            <button class="button" data-copy="{{ item.dispatch.title }}">Copy Title</button>
+            <button class="button" data-copy="{{ item.dispatch.primary_body or '' }}">Copy Body</button>
+            {% if item.destination_url %}<a class="button" href="{{ item.destination_url }}" target="_blank">Open Destination</a>{% endif %}
         </div>
-        <pre>{{ version.platform_body or version.short_text or "No body text yet." }}</pre>
-        <form method="post" action="{{ url_for('queue.mark_published', version_id=version.id) }}" class="publish-form">
+        <pre>{{ item.dispatch.primary_body or item.dispatch.summary or "No body text yet." }}</pre>
+        <p><strong>Destination:</strong> {% if item.destination_url %}<a href="{{ item.destination_url }}" target="_blank">{{ item.destination_url }}</a>{% else %}None{% endif %}</p>
+        <p><strong>Posted URL:</strong> {% if item.posted_url %}<a href="{{ item.posted_url }}" target="_blank">{{ item.posted_url }}</a>{% else %}Not posted{% endif %}</p>
+        <p><strong>Posted At:</strong> {{ item.posted_at or "" }}</p>
+        <p><strong>Notes:</strong> {{ item.notes or "" }}</p>
+        {% if item.status != "Published" %}
+        <form method="post" action="{{ url_for('queue.mark_published', item_id=item.id) }}" class="publish-form">
             <input type="url" name="posted_url" placeholder="Posted URL">
+            <input type="text" name="notes" placeholder="Notes">
             <button class="button primary" type="submit">Mark as Published</button>
-            <a class="button" href="{{ url_for('platform_versions.edit_platform_version', version_id=version.id) }}">Edit</a>
         </form>
+        {% endif %}
     </article>
 {% else %}
-    <p>No platform versions are waiting to publish.</p>
+    <p>No publishing queue items yet.</p>
 {% endfor %}
 </div>
 {% endblock %}

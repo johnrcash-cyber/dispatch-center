@@ -12,7 +12,7 @@ from .models import (
     MediaAsset,
     Organization,
     PlatformSetting,
-    PlatformVersion,
+    PublishingQueueItem,
     db,
 )
 
@@ -47,6 +47,10 @@ def register_seed_command(app):
                 if column not in media_columns:
                     connection.execute(text(f"ALTER TABLE media_asset ADD COLUMN {column} {ddl}"))
                     click.echo(f"Added media_asset.{column}")
+            table_names = set(inspector.get_table_names())
+            if "platform_version" in table_names:
+                connection.execute(text("DROP TABLE platform_version"))
+                click.echo("Dropped platform_version")
         backfill_organization_slugs()
         click.echo("Database upgraded.")
 
@@ -98,50 +102,10 @@ def register_seed_command(app):
             short_version="Release 1.2 is live with queue and tracking improvements.",
             call_to_action="Open the release notes",
             tags="release-notes, launch",
-            notes="Create platform versions for web, LinkedIn, Discord, and newsletter.",
+            notes="Use platform settings to add publishing queue targets.",
         )
         db.session.add(dispatch)
         db.session.flush()
-
-        versions = [
-            PlatformVersion(
-                dispatch_id=dispatch.id,
-                platform_name="Website",
-                status="Ready",
-                platform_title="Platform Release 1.2 Is Live",
-                platform_body=dispatch.primary_body,
-                call_to_action="Read the release notes",
-                selected_image_urls="https://example.com/release-hero.png",
-                destination_url="https://example.com/admin/posts/new",
-            ),
-            PlatformVersion(
-                dispatch_id=dispatch.id,
-                platform_name="LinkedIn",
-                status="Ready",
-                platform_title="Platform Release 1.2 is live",
-                platform_body=(
-                    "Release 1.2 is live. We improved queue visibility, manual "
-                    "publishing workflows, and posted-link tracking for teams "
-                    "coordinating across channels."
-                ),
-                short_text="Release 1.2 is live.",
-                hashtags="#ProductUpdate #ReleaseNotes",
-                selected_image_urls="https://example.com/release-social.png",
-                destination_url="https://www.linkedin.com/feed/",
-            ),
-            PlatformVersion(
-                dispatch_id=dispatch.id,
-                platform_name="Discord",
-                status="Draft",
-                platform_title="Release 1.2 is live",
-                platform_body=(
-                    "Release 1.2 is live. Check out the improved queue and tracking "
-                    "workflow in the release notes."
-                ),
-                destination_url="https://discord.com/channels/",
-            ),
-        ]
-        db.session.add_all(versions)
 
         db.session.add(
             MediaAsset(
@@ -190,6 +154,27 @@ def register_seed_command(app):
             ),
         ]
         db.session.add_all(settings)
+        db.session.flush()
+        db.session.add_all(
+            [
+                PublishingQueueItem(
+                    dispatch_id=dispatch.id,
+                    platform_setting_id=settings[0].id,
+                    platform_name=settings[0].platform_name,
+                    status="Queued",
+                    destination_url=settings[0].destination_url,
+                    notes="Seeded manual publishing queue item.",
+                ),
+                PublishingQueueItem(
+                    dispatch_id=dispatch.id,
+                    platform_setting_id=settings[1].id,
+                    platform_name=settings[1].platform_name,
+                    status="Queued",
+                    destination_url=settings[1].destination_url,
+                    notes="Adapt manually from the source dispatch copy.",
+                ),
+            ]
+        )
         db.session.commit()
 
         click.echo(f"Seeded {current_app.name} with example data.")

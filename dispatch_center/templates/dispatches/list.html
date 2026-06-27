@@ -3,9 +3,9 @@
 {% block title %}Dispatches | Dispatch Center{% endblock %}
 {% block content %}
 <header class="page-header"><div><p class="eyebrow">Content</p><h1>Dispatches</h1></div><a class="button primary" href="{{ url_for('dispatches.create_dispatch') }}">New Dispatch</a></header>
-<div class="table-wrap"><table><thead><tr><th>Title</th><th>Campaign</th><th>Status</th><th>Versions</th><th></th></tr></thead><tbody>
+<div class="table-wrap"><table><thead><tr><th>Title</th><th>Campaign</th><th>Status</th><th>Queue Items</th><th></th></tr></thead><tbody>
 {% for dispatch in dispatches %}
-<tr><td><a href="{{ url_for('dispatches.detail_dispatch', dispatch_id=dispatch.id) }}">{{ dispatch.title }}</a></td><td>{{ dispatch.campaign.name }}</td><td>{{ status_badge(dispatch.status) }}</td><td>{{ dispatch.platform_versions|length }}</td><td><a href="{{ url_for('dispatches.edit_dispatch', dispatch_id=dispatch.id) }}">Edit</a></td></tr>
+<tr><td><a href="{{ url_for('dispatches.detail_dispatch', dispatch_id=dispatch.id) }}">{{ dispatch.title }}</a></td><td>{{ dispatch.campaign.name }}</td><td>{{ status_badge(dispatch.status) }}</td><td>{{ dispatch.queue_items|length }}</td><td><a href="{{ url_for('dispatches.edit_dispatch', dispatch_id=dispatch.id) }}">Edit</a></td></tr>
 {% else %}<tr><td colspan="5">No dispatches yet.</td></tr>{% endfor %}
 </tbody></table></div>
 {% endblock %}
