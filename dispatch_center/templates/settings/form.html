@@ -3,8 +3,19 @@
 {% block title %}{{ title }} | Dispatch Center{% endblock %}
 {% block content %}
 <header class="page-header"><div><p class="eyebrow">Settings</p><h1>{{ title }}</h1></div></header>
-<form method="post" class="form-grid">
-    {{ text_input("platform_name", "Platform Name", setting.platform_name, required=True) }}
+<form method="post" class="form-grid" data-platform-settings-form data-platform-presets='{{ platform_presets|tojson }}' data-organization-website="{{ organization.website_url or '' }}">
+    <label>
+        <span>Platform Name</span>
+        <select name="platform_preset" data-platform-preset>
+            {% for preset_name in preset_names %}
+                <option value="{{ preset_name }}" {% if preset_name == setting.platform_name or (not setting.platform_name and preset_name == "Custom") %}selected{% endif %}>{{ preset_name }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label data-custom-platform-field {% if setting.platform_name in preset_names and setting.platform_name != "Custom" %}hidden{% endif %}>
+        <span>Custom Platform Name</span>
+        <input type="text" name="custom_platform_name" value="{% if setting.platform_name not in preset_names %}{{ setting.platform_name or '' }}{% endif %}">
+    </label>
     {{ text_input("destination_url", "Destination URL", setting.destination_url, type="url") }}
     {{ text_input("posting_method", "Posting Method", setting.posting_method or "Manual") }}
     {{ text_input("character_limit", "Character Limit", setting.character_limit, type="number") }}

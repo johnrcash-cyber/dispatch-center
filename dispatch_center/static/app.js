@@ -53,3 +53,55 @@ document.addEventListener("change", (event) => {
 });
 
 document.querySelectorAll("[data-asset-browser]").forEach(applyAssetBrowserFilters);
+
+function setFieldIfEmpty(field, value) {
+    if (!field || field.dataset.touched === "true") return;
+    if (field.type === "checkbox") {
+        field.checked = Boolean(value);
+        return;
+    }
+    if ((field.value || "") === "" && value !== null && value !== undefined) {
+        field.value = value;
+    }
+}
+
+function applyPlatformPreset(form) {
+    const select = form.querySelector("[data-platform-preset]");
+    const preset = JSON.parse(form.dataset.platformPresets || "{}")[select.value] || {};
+    const customField = form.querySelector("[data-custom-platform-field]");
+    if (customField) customField.hidden = select.value !== "Custom";
+
+    setFieldIfEmpty(form.elements.posting_method, preset.posting_method || "Manual");
+    setFieldIfEmpty(form.elements.character_limit, preset.character_limit);
+    setFieldIfEmpty(form.elements.default_hashtags, preset.default_hashtags);
+    setFieldIfEmpty(form.elements.supports_markdown, preset.supports_markdown);
+    setFieldIfEmpty(form.elements.supports_html, preset.supports_html);
+    setFieldIfEmpty(form.elements.supports_images, preset.supports_images);
+
+    const destination = form.elements.destination_url;
+    if (destination) {
+        const orgWebsite = form.dataset.organizationWebsite || "";
+        const websitePreset = select.value === "Website / Blog" || select.value === "WordPress Blog";
+        destination.placeholder = websitePreset && orgWebsite ? orgWebsite : (preset.destination_hint || "");
+        setFieldIfEmpty(destination, websitePreset ? orgWebsite : "");
+    }
+}
+
+document.addEventListener("input", (event) => {
+    const form = event.target.closest("[data-platform-settings-form]");
+    if (!form || event.target.matches("[data-platform-preset]")) return;
+    event.target.dataset.touched = "true";
+});
+
+document.addEventListener("change", (event) => {
+    const form = event.target.closest("[data-platform-settings-form]");
+    if (!form) return;
+
+    if (event.target.matches("[data-platform-preset]")) {
+        applyPlatformPreset(form);
+        return;
+    }
+    event.target.dataset.touched = "true";
+});
+
+document.querySelectorAll("[data-platform-settings-form]").forEach(applyPlatformPreset);
