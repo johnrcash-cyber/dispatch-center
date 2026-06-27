@@ -54,7 +54,6 @@ def save_dispatch(dispatch):
     dispatch.summary = form_text(request.form, "summary")
     dispatch.short_version = form_text(request.form, "short_version")
     dispatch.call_to_action = form_text(request.form, "call_to_action")
-    dispatch.canonical_link = form_text(request.form, "canonical_link")
     dispatch.tags = form_text(request.form, "tags")
     dispatch.notes = form_text(request.form, "notes")
     db.session.add(dispatch)

@@ -124,6 +124,32 @@ pre { background: #0d1115; border: 1px solid var(--line); border-radius: var(--r
 }
 .organization-card img { width: 58px; height: 58px; object-fit: cover; border-radius: var(--radius); background: var(--panel-2); }
 .organization-card p { color: var(--muted); }
+.asset-preview { display: flex; align-items: center; gap: 14px; min-width: 110px; }
+.asset-preview img {
+    width: 160px;
+    height: 110px;
+    object-fit: cover;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+}
+.asset-preview.compact img, .asset-preview.compact .asset-icon {
+    width: 58px;
+    height: 42px;
+    font-size: .72rem;
+}
+.asset-icon {
+    display: grid;
+    place-items: center;
+    width: 86px;
+    height: 64px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #0d1115;
+    color: var(--accent-strong);
+    font-weight: 700;
+    letter-spacing: .04em;
+}
 .flash-stack { display: grid; gap: 10px; margin-bottom: 18px; }
 .flash { border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); padding: 10px 12px; }
 .flash.success { border-color: var(--accent); }

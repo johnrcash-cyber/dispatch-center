@@ -2,6 +2,7 @@ from datetime import date
 
 import click
 from flask import current_app
+from sqlalchemy import inspect, text
 
 from .models import (
     Campaign,
@@ -19,6 +20,26 @@ def register_seed_command(app):
     def init_db():
         db.create_all()
         click.echo("Database initialized.")
+
+    @app.cli.command("upgrade-db")
+    def upgrade_db():
+        db.create_all()
+        inspector = inspect(db.engine)
+        columns = {column["name"] for column in inspector.get_columns("media_asset")}
+        additions = {
+            "source_type": "VARCHAR(80) DEFAULT 'External URL'",
+            "filename": "VARCHAR(255)",
+            "original_filename": "VARCHAR(255)",
+            "file_size": "INTEGER",
+            "mime_type": "VARCHAR(160)",
+            "uploaded_at": "DATETIME",
+        }
+        with db.engine.begin() as connection:
+            for column, ddl in additions.items():
+                if column not in columns:
+                    connection.execute(text(f"ALTER TABLE media_asset ADD COLUMN {column} {ddl}"))
+                    click.echo(f"Added media_asset.{column}")
+        click.echo("Database upgraded.")
 
     @app.cli.command("seed")
     def seed():
@@ -66,7 +87,6 @@ def register_seed_command(app):
             summary="Release 1.2 improves workflow visibility and manual publishing.",
             short_version="Release 1.2 is live with queue and tracking improvements.",
             call_to_action="Open the release notes",
-            canonical_link="https://example.com/releases/1-2",
             tags="release-notes, launch",
             notes="Create platform versions for web, LinkedIn, Discord, and newsletter.",
         )
@@ -119,6 +139,7 @@ def register_seed_command(app):
                 campaign_id=campaign.id,
                 dispatch_id=dispatch.id,
                 asset_type="Image",
+                source_type="External URL",
                 title="Release Hero",
                 url="https://example.com/release-hero.png",
                 alt_text="Abstract product release hero image",

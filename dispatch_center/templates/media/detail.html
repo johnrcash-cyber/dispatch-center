@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% from "media/_preview.html" import asset_preview %}
+{% block title %}{{ asset.title }} | Dispatch Center{% endblock %}
+{% block content %}
+<header class="page-header">
+    <div><p class="eyebrow">Media Asset</p><h1>{{ asset.title }}</h1></div>
+    <a class="button" href="{{ url_for('media.edit_asset', asset_id=asset.id) }}">Edit</a>
+</header>
+<section class="detail-grid">
+    <div>
+        <h2>Preview</h2>
+        {{ asset_preview(asset) }}
+    </div>
+    <div>
+        <h2>Details</h2>
+        <p><strong>Asset type:</strong> {{ asset.asset_type }}</p>
+        <p><strong>Source:</strong> {{ asset.source_type or ("Uploaded File" if asset.filename else "External URL") }}</p>
+        <p><strong>Approved:</strong> {{ "Yes" if asset.approved else "No" }}</p>
+        <p><strong>Created:</strong> {{ asset.created_at }}</p>
+        <p><strong>Uploaded:</strong> {{ asset.uploaded_at or "" }}</p>
+    </div>
+</section>
+<section class="detail-grid">
+    <div><h2>Alt Text</h2><p>{{ asset.alt_text or "No alt text." }}</p></div>
+    <div><h2>Notes</h2><p>{{ asset.notes or "No notes." }}</p></div>
+</section>
+{% endblock %}

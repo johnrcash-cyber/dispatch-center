@@ -1,5 +1,4 @@
 from flask import g, redirect, request, session, url_for
-from sqlalchemy.orm import aliased
 
 from .models import Campaign, Dispatch, MediaAsset, Organization, PlatformSetting, PlatformVersion
 
@@ -67,19 +66,7 @@ def platform_version_query():
 
 
 def media_asset_query():
-    org_id = g.active_organization.id
-    direct_campaign = aliased(Campaign)
-    dispatch_campaign = aliased(Campaign)
-    return (
-        MediaAsset.query.outerjoin(direct_campaign, MediaAsset.campaign_id == direct_campaign.id)
-        .outerjoin(Dispatch, MediaAsset.dispatch_id == Dispatch.id)
-        .outerjoin(dispatch_campaign, Dispatch.campaign_id == dispatch_campaign.id)
-        .filter(
-            (MediaAsset.organization_id == org_id)
-            | (direct_campaign.organization_id == org_id)
-            | (dispatch_campaign.organization_id == org_id)
-        )
-    )
+    return MediaAsset.query.filter(MediaAsset.organization_id == g.active_organization.id)
 
 
 def platform_setting_query():

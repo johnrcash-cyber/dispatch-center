@@ -1,10 +1,19 @@
 {% extends "base.html" %}
+{% from "media/_preview.html" import asset_preview %}
 {% block title %}Media Library | Dispatch Center{% endblock %}
 {% block content %}
 <header class="page-header"><div><p class="eyebrow">Assets</p><h1>Media Library</h1></div><a class="button primary" href="{{ url_for('media.create_asset') }}">New Asset</a></header>
-<div class="table-wrap"><table><thead><tr><th>Title</th><th>Type</th><th>Approved</th><th>Attached To</th><th>URL</th><th></th></tr></thead><tbody>
+<div class="table-wrap"><table><thead><tr><th>Preview</th><th>Title</th><th>Type</th><th>Source</th><th>Approved</th><th>Date</th><th></th></tr></thead><tbody>
 {% for asset in assets %}
-<tr><td>{{ asset.title }}</td><td>{{ asset.asset_type }}</td><td>{{ "Yes" if asset.approved else "No" }}</td><td>{% if asset.dispatch %}{{ asset.dispatch.title }}{% elif asset.campaign %}{{ asset.campaign.name }}{% elif asset.organization %}{{ asset.organization.name }}{% endif %}</td><td>{% if asset.url %}<a href="{{ asset.url }}" target="_blank">Open</a>{% endif %}</td><td><a href="{{ url_for('media.edit_asset', asset_id=asset.id) }}">Edit</a></td></tr>
-{% else %}<tr><td colspan="6">No assets yet.</td></tr>{% endfor %}
+<tr>
+    <td>{{ asset_preview(asset, compact=True) }}</td>
+    <td><a href="{{ url_for('media.detail_asset', asset_id=asset.id) }}">{{ asset.title }}</a></td>
+    <td>{{ asset.asset_type }}</td>
+    <td>{{ asset.source_type or ("Uploaded File" if asset.filename else "External URL") }}</td>
+    <td>{{ "Yes" if asset.approved else "No" }}</td>
+    <td>{{ asset.uploaded_at.date() if asset.uploaded_at else asset.created_at.date() }}</td>
+    <td><a href="{{ url_for('media.edit_asset', asset_id=asset.id) }}">Edit</a></td>
+</tr>
+{% else %}<tr><td colspan="7">No assets yet.</td></tr>{% endfor %}
 </tbody></table></div>
 {% endblock %}

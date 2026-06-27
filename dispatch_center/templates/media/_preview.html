@@ -1,0 +1,32 @@
+{% macro asset_preview(asset, compact=False) %}
+    {% set source_type = asset.source_type or ("Uploaded File" if asset.filename else "External URL") %}
+    {% set display_url = url_for('static', filename='uploads/' ~ asset.filename) if asset.filename else asset.url %}
+    {% set is_image = asset.asset_type == "Image" %}
+    <div class="asset-preview {% if compact %}compact{% endif %}">
+        {% if is_image and display_url %}
+            <img src="{{ display_url }}" alt="{{ asset.alt_text or asset.title }}">
+        {% else %}
+            <span class="asset-icon">
+                {% if asset.asset_type == "Video" %}VID
+                {% elif asset.asset_type == "Audio" %}AUD
+                {% elif asset.asset_type == "Document" %}DOC
+                {% elif asset.asset_type == "External Link" %}URL
+                {% else %}FILE
+                {% endif %}
+            </span>
+        {% endif %}
+        {% if not compact %}
+            <div>
+                <p><strong>{{ source_type }}</strong></p>
+                {% if asset.filename %}
+                    <p>{{ asset.original_filename or asset.filename }}</p>
+                    <a href="{{ display_url }}" target="_blank">Open uploaded file</a>
+                {% elif asset.url %}
+                    <a href="{{ asset.url }}" target="_blank">{{ asset.url }}</a>
+                {% else %}
+                    <p>No file or URL attached.</p>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+{% endmacro %}

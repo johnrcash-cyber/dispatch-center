@@ -10,10 +10,13 @@ def create_app(config_object=None):
     instance_path = Path(app.instance_path)
     instance_path.mkdir(parents=True, exist_ok=True)
     database_path = (instance_path / "dispatch_center.sqlite3").as_posix()
+    upload_path = Path(app.static_folder) / "uploads"
+    upload_path.mkdir(parents=True, exist_ok=True)
     app.config.from_mapping(
         SECRET_KEY="dev",
         SQLALCHEMY_DATABASE_URI=f"sqlite:///{database_path}",
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        UPLOAD_FOLDER=str(upload_path),
     )
 
     if config_object:

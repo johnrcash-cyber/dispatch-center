@@ -63,7 +63,6 @@ class Dispatch(TimestampMixin, db.Model):
     summary = db.Column(db.Text)
     short_version = db.Column(db.Text)
     call_to_action = db.Column(db.Text)
-    canonical_link = db.Column(db.String(500))
     tags = db.Column(db.String(500))
     notes = db.Column(db.Text)
 
@@ -103,8 +102,14 @@ class MediaAsset(TimestampMixin, db.Model):
     campaign_id = db.Column(db.Integer, db.ForeignKey("campaign.id"))
     dispatch_id = db.Column(db.Integer, db.ForeignKey("dispatch.id"))
     asset_type = db.Column(db.String(80), default="Image")
+    source_type = db.Column(db.String(80), default="External URL")
     title = db.Column(db.String(180), nullable=False)
     url = db.Column(db.String(500))
+    filename = db.Column(db.String(255))
+    original_filename = db.Column(db.String(255))
+    file_size = db.Column(db.Integer)
+    mime_type = db.Column(db.String(160))
+    uploaded_at = db.Column(db.DateTime)
     alt_text = db.Column(db.String(500))
     notes = db.Column(db.Text)
     approved = db.Column(db.Boolean, default=False)
@@ -112,6 +117,14 @@ class MediaAsset(TimestampMixin, db.Model):
     organization = db.relationship("Organization", back_populates="assets")
     campaign = db.relationship("Campaign", back_populates="assets")
     dispatch = db.relationship("Dispatch", back_populates="assets")
+
+    @property
+    def is_uploaded_file(self):
+        return self.source_type == "Uploaded File" and bool(self.filename)
+
+    @property
+    def is_external_url(self):
+        return self.source_type == "External URL" and bool(self.url)
 
 
 class PlatformSetting(TimestampMixin, db.Model):

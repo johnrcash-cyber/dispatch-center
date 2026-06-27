@@ -1,15 +1,31 @@
 {% extends "base.html" %}
 {% from "macros.html" import text_input, textarea %}
+{% from "media/_preview.html" import asset_preview %}
 {% block title %}{{ title }} | Dispatch Center{% endblock %}
 {% block content %}
 <header class="page-header"><div><p class="eyebrow">Media</p><h1>{{ title }}</h1></div></header>
-<form method="post" class="form-grid">
+{% if asset.id %}
+<section class="detail-grid">
+    <div>
+        <h2>Current Asset</h2>
+        {{ asset_preview(asset) }}
+    </div>
+    <div>
+        <h2>File Metadata</h2>
+        <p><strong>Original filename:</strong> {{ asset.original_filename or "" }}</p>
+        <p><strong>MIME type:</strong> {{ asset.mime_type or "" }}</p>
+        <p><strong>File size:</strong> {{ asset.file_size or "" }}</p>
+        <p><strong>Uploaded:</strong> {{ asset.uploaded_at or "" }}</p>
+    </div>
+</section>
+{% endif %}
+<form method="post" class="form-grid" enctype="multipart/form-data">
     {{ text_input("title", "Title", asset.title, required=True) }}
-    {{ text_input("asset_type", "Asset Type", asset.asset_type or "Image") }}
-    {{ text_input("url", "URL", asset.url, type="url") }}
+    <label><span>Asset Type</span><select name="asset_type">{% for asset_type in asset_types %}<option value="{{ asset_type }}" {% if asset_type == (asset.asset_type or "Image") %}selected{% endif %}>{{ asset_type }}</option>{% endfor %}</select></label>
+    <label><span>Asset Source</span><select name="source_type">{% for source_type in source_types %}<option value="{{ source_type }}" {% if source_type == (asset.source_type or "External URL") %}selected{% endif %}>{{ source_type }}</option>{% endfor %}</select></label>
+    <label><span>Upload File</span><input type="file" name="file"></label>
+    {{ text_input("url", "External URL", asset.url, type="url") }}
     {{ text_input("alt_text", "Alt Text", asset.alt_text) }}
-    <label><span>Campaign</span><select name="campaign_id"><option value="">None</option>{% for campaign in campaigns %}<option value="{{ campaign.id }}" {% if campaign.id == asset.campaign_id %}selected{% endif %}>{{ campaign.name }}</option>{% endfor %}</select></label>
-    <label><span>Dispatch</span><select name="dispatch_id"><option value="">None</option>{% for dispatch in dispatches %}<option value="{{ dispatch.id }}" {% if dispatch.id == asset.dispatch_id %}selected{% endif %}>{{ dispatch.title }}</option>{% endfor %}</select></label>
     <label class="check"><input type="checkbox" name="approved" {% if asset.approved %}checked{% endif %}> <span>Approved</span></label>
     {{ textarea("notes", "Notes", asset.notes) }}
     <div class="form-actions span-2"><button class="button primary" type="submit">Save Asset</button><a class="button" href="{{ url_for('media.list_assets') }}">Cancel</a></div>
