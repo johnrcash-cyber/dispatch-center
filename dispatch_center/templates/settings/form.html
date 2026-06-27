@@ -26,6 +26,19 @@
     <label class="check"><input type="checkbox" name="supports_images" {% if setting.supports_images is not false %}checked{% endif %}> <span>Supports Images</span></label>
     {{ textarea("default_footer", "Default Footer", setting.default_footer, rows=3) }}
     {{ textarea("notes", "Notes", setting.notes) }}
+    <section class="form-section span-2">
+        <div>
+            <p class="eyebrow">Local Prototype Only</p>
+            <h2>Access Info</h2>
+        </div>
+        <p class="section-note">Stored locally for manual posting workflow. Passwords are hidden in list views and shown as password fields here.</p>
+    </section>
+    {{ text_input("login_url", "Login URL", setting.login_url, type="url") }}
+    {{ text_input("username", "Username", setting.username) }}
+    {{ text_input("password", "Password", setting.password, type="password") }}
+    {{ text_input("recovery_email", "Recovery Email", setting.recovery_email, type="email") }}
+    {{ textarea("two_factor_notes", "Two-Factor Notes", setting.two_factor_notes, rows=3) }}
+    {{ textarea("credential_notes", "Credential Notes", setting.credential_notes, rows=3) }}
     <div class="form-actions span-2"><button class="button primary" type="submit">Save Setting</button><a class="button" href="{{ url_for('settings.list_settings') }}">Cancel</a></div>
 </form>
 {% endblock %}

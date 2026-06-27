@@ -110,6 +110,15 @@ pre { background: #0d1115; border: 1px solid var(--line); border-radius: var(--r
 .check { display: flex; align-items: center; gap: 8px; align-self: end; }
 .check input { width: auto; }
 .form-actions, .copy-grid, .publish-form { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.form-section {
+    border-top: 1px solid var(--line);
+    padding-top: 18px;
+    margin-top: 8px;
+    display: grid;
+    gap: 6px;
+}
+.form-section h2 { font-size: 1.1rem; }
+.section-note { margin: 0; color: var(--muted); }
 .queue-list { display: grid; gap: 16px; }
 .publish-form input { max-width: 420px; }
 .organization-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }

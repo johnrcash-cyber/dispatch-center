@@ -140,6 +140,12 @@ class PlatformSetting(TimestampMixin, db.Model):
     default_hashtags = db.Column(db.String(500))
     default_footer = db.Column(db.Text)
     notes = db.Column(db.Text)
+    login_url = db.Column(db.String(500))
+    username = db.Column(db.String(255))
+    password = db.Column(db.String(255))
+    recovery_email = db.Column(db.String(255))
+    two_factor_notes = db.Column(db.Text)
+    credential_notes = db.Column(db.Text)
 
     organization = db.relationship("Organization", back_populates="platform_settings")
     queue_items = db.relationship("PublishingQueueItem", back_populates="platform_setting")

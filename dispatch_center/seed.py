@@ -31,6 +31,9 @@ def register_seed_command(app):
             column["name"] for column in inspector.get_columns("organization")
         }
         media_columns = {column["name"] for column in inspector.get_columns("media_asset")}
+        platform_setting_columns = {
+            column["name"] for column in inspector.get_columns("platform_setting")
+        }
         media_additions = {
             "source_type": "VARCHAR(80) DEFAULT 'External URL'",
             "filename": "VARCHAR(255)",
@@ -38,6 +41,14 @@ def register_seed_command(app):
             "file_size": "INTEGER",
             "mime_type": "VARCHAR(160)",
             "uploaded_at": "DATETIME",
+        }
+        platform_setting_additions = {
+            "login_url": "VARCHAR(500)",
+            "username": "VARCHAR(255)",
+            "password": "VARCHAR(255)",
+            "recovery_email": "VARCHAR(255)",
+            "two_factor_notes": "TEXT",
+            "credential_notes": "TEXT",
         }
         with db.engine.begin() as connection:
             if "slug" not in organization_columns:
@@ -47,6 +58,10 @@ def register_seed_command(app):
                 if column not in media_columns:
                     connection.execute(text(f"ALTER TABLE media_asset ADD COLUMN {column} {ddl}"))
                     click.echo(f"Added media_asset.{column}")
+            for column, ddl in platform_setting_additions.items():
+                if column not in platform_setting_columns:
+                    connection.execute(text(f"ALTER TABLE platform_setting ADD COLUMN {column} {ddl}"))
+                    click.echo(f"Added platform_setting.{column}")
             table_names = set(inspector.get_table_names())
             if "platform_version" in table_names:
                 connection.execute(text("DROP TABLE platform_version"))
