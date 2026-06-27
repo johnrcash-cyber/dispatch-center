@@ -3,11 +3,23 @@
 {% block title %}{{ title }} | Dispatch Center{% endblock %}
 {% block content %}
 <header class="page-header"><div><p class="eyebrow">Organization</p><h1>{{ title }}</h1></div></header>
-<form method="post" class="form-grid">
+{% if organization.logo_url %}
+<section class="detail-grid">
+    <div>
+        <h2>Logo Preview</h2>
+        <img class="organization-logo-preview" src="{{ organization.logo_url }}" alt="{{ organization.name }} logo">
+    </div>
+</section>
+{% endif %}
+<form method="post" class="form-grid" enctype="multipart/form-data">
     {{ text_input("name", "Name", organization.name, required=True) }}
     {{ text_input("slug", "Slug", organization.slug) }}
     {{ text_input("website_url", "Website URL", organization.website_url, type="url") }}
     {{ text_input("logo_url", "Logo URL", organization.logo_url, type="url") }}
+    <label>
+        <span>Upload Logo</span>
+        <input type="file" name="logo_file" accept=".png,.jpg,.jpeg,.gif,.webp,.svg,image/png,image/jpeg,image/gif,image/webp,image/svg+xml">
+    </label>
     {{ textarea("description", "Description", organization.description) }}
     {{ textarea("default_cta", "Default CTA", organization.default_cta, rows=3) }}
     {{ textarea("default_footer", "Default Footer", organization.default_footer, rows=3) }}

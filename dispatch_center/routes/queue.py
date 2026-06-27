@@ -31,3 +31,23 @@ def mark_published(item_id):
     # Future publishing automation or webhook callbacks can write richer history here.
     flash(f"{item.platform_name} marked as published.", "success")
     return redirect(url_for("queue.publishing_queue"))
+
+
+@queue_bp.route("/<int:item_id>/save", methods=["POST"])
+def save_posted_url(item_id):
+    item = publishing_queue_query().filter(PublishingQueueItem.id == item_id).first_or_404()
+    item.posted_url = form_text(request.form, "posted_url")
+    item.notes = form_text(request.form, "notes") or item.notes
+    db.session.commit()
+    flash(f"{item.platform_name} queue item saved.", "success")
+    return redirect(url_for("queue.publishing_queue"))
+
+
+@queue_bp.route("/<int:item_id>/skip", methods=["POST"])
+def skip_item(item_id):
+    item = publishing_queue_query().filter(PublishingQueueItem.id == item_id).first_or_404()
+    item.status = "Skipped"
+    item.notes = form_text(request.form, "notes") or item.notes
+    db.session.commit()
+    flash(f"{item.platform_name} skipped.", "success")
+    return redirect(url_for("queue.publishing_queue"))

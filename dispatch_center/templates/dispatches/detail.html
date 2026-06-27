@@ -7,23 +7,5 @@
 {% set show_add_form = false %}
 {% include "dispatches/_media_assets.html" with context %}
 {% include "dispatches/_preview.html" with context %}
-<div class="section-header"><h2>Publishing Targets</h2><a href="{{ url_for('settings.list_settings') }}">Manage settings</a></div>
-<div class="table-wrap"><table><thead><tr><th>Platform</th><th>Destination</th><th>Status</th><th></th></tr></thead><tbody>
-{% for setting in platform_settings %}
-<tr>
-    <td>{{ setting.platform_name }}</td>
-    <td>{% if setting.destination_url %}<a href="{{ setting.destination_url }}" target="_blank">{{ setting.destination_url }}</a>{% endif %}</td>
-    <td>{% if setting.id in queued_setting_ids %}Queued{% else %}Available{% endif %}</td>
-    <td>
-        {% if setting.id in queued_setting_ids %}
-            <a href="{{ url_for('queue.publishing_queue') }}">Open queue</a>
-        {% else %}
-            <form method="post" action="{{ url_for('dispatches.add_publishing_target', dispatch_id=dispatch.id, setting_id=setting.id) }}">
-                <button class="button primary" type="submit">Add to Queue</button>
-            </form>
-        {% endif %}
-    </td>
-</tr>
-{% else %}<tr><td colspan="4">No enabled platform settings yet.</td></tr>{% endfor %}
-</tbody></table></div>
+{% include "dispatches/_publishing_targets.html" with context %}
 {% endblock %}

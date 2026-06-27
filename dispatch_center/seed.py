@@ -66,6 +66,10 @@ def register_seed_command(app):
             if "platform_version" in table_names:
                 connection.execute(text("DROP TABLE platform_version"))
                 click.echo("Dropped platform_version")
+            if "publishing_queue_item" in table_names:
+                connection.execute(
+                    text("UPDATE publishing_queue_item SET status = 'Ready' WHERE status = 'Queued'")
+                )
         backfill_organization_slugs()
         click.echo("Database upgraded.")
 
@@ -176,7 +180,7 @@ def register_seed_command(app):
                     dispatch_id=dispatch.id,
                     platform_setting_id=settings[0].id,
                     platform_name=settings[0].platform_name,
-                    status="Queued",
+                    status="Ready",
                     destination_url=settings[0].destination_url,
                     notes="Seeded manual publishing queue item.",
                 ),
@@ -184,7 +188,7 @@ def register_seed_command(app):
                     dispatch_id=dispatch.id,
                     platform_setting_id=settings[1].id,
                     platform_name=settings[1].platform_name,
-                    status="Queued",
+                    status="Ready",
                     destination_url=settings[1].destination_url,
                     notes="Adapt manually from the source dispatch copy.",
                 ),

@@ -1,0 +1,36 @@
+<section class="publishing-targets">
+    <div class="section-header">
+        <h2>Publishing Targets</h2>
+        <a href="{{ url_for('settings.list_settings') }}">Manage settings</a>
+    </div>
+    {% if dispatch.id %}
+        <form method="post" action="{{ url_for('dispatches.add_selected_publishing_targets', dispatch_id=dispatch.id) }}">
+            <div class="target-grid">
+                {% for setting in platform_settings %}
+                    <label class="target-card">
+                        <input type="checkbox" name="platform_setting_ids" value="{{ setting.id }}" {% if setting.id in queued_setting_ids %}disabled{% endif %}>
+                        <span>
+                            <strong>{{ setting.platform_name }}</strong>
+                            <small>{% if setting.id in queued_setting_ids %}Already queued{% else %}Ready to queue{% endif %}</small>
+                            {% if setting.destination_url %}<small>{{ setting.destination_url }}</small>{% endif %}
+                        </span>
+                    </label>
+                {% else %}
+                    <p>No enabled platform settings yet.</p>
+                {% endfor %}
+            </div>
+            {% if platform_settings %}
+                <label class="target-notes">
+                    <span>Queue Notes</span>
+                    <input type="text" name="queue_notes">
+                </label>
+                <div class="form-actions">
+                    <button class="button primary" type="submit">Add Selected to Queue</button>
+                    <a class="button" href="{{ url_for('queue.publishing_queue') }}">Open Queue</a>
+                </div>
+            {% endif %}
+        </form>
+    {% else %}
+        <p>Save this dispatch before adding publishing targets.</p>
+    {% endif %}
+</section>

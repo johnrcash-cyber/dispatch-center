@@ -156,7 +156,7 @@ class PublishingQueueItem(TimestampMixin, db.Model):
     dispatch_id = db.Column(db.Integer, db.ForeignKey("dispatch.id"), nullable=False)
     platform_setting_id = db.Column(db.Integer, db.ForeignKey("platform_setting.id"))
     platform_name = db.Column(db.String(120), nullable=False)
-    status = db.Column(db.String(80), default="Queued")
+    status = db.Column(db.String(80), default="Draft")
     destination_url = db.Column(db.String(500))
     posted_url = db.Column(db.String(500))
     posted_at = db.Column(db.DateTime)

@@ -1,4 +1,8 @@
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from pathlib import Path
+from uuid import uuid4
+
+from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
+from werkzeug.utils import secure_filename
 
 from dispatch_center.forms import form_text
 from dispatch_center.models import Organization, db
@@ -7,6 +11,8 @@ from dispatch_center.workspace import set_active_organization
 
 
 organizations_bp = Blueprint("organizations", __name__, url_prefix="/organizations")
+
+ALLOWED_LOGO_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp", "svg"}
 
 
 @organizations_bp.route("/select")
@@ -34,10 +40,10 @@ def list_organizations():
 def create_organization():
     organization = Organization()
     if request.method == "POST":
-        save_organization(organization)
-        set_active_organization(organization)
-        flash("Organization created.", "success")
-        return redirect(url_for("organizations.detail_organization", org_id=organization.id))
+        if save_organization(organization):
+            set_active_organization(organization)
+            flash("Organization created.", "success")
+            return redirect(url_for("organizations.detail_organization", org_id=organization.id))
     return render_template("organizations/form.html", organization=organization, title="New Organization")
 
 
@@ -51,9 +57,9 @@ def detail_organization(org_id):
 def edit_organization(org_id):
     organization = Organization.query.get_or_404(org_id)
     if request.method == "POST":
-        save_organization(organization)
-        flash("Organization updated.", "success")
-        return redirect(url_for("organizations.detail_organization", org_id=organization.id))
+        if save_organization(organization):
+            flash("Organization updated.", "success")
+            return redirect(url_for("organizations.detail_organization", org_id=organization.id))
     return render_template("organizations/form.html", organization=organization, title="Edit Organization")
 
 
@@ -66,11 +72,33 @@ def save_organization(organization):
     organization.description = form_text(request.form, "description")
     organization.website_url = form_text(request.form, "website_url")
     organization.logo_url = form_text(request.form, "logo_url")
+    logo_file = request.files.get("logo_file")
+    if logo_file and logo_file.filename:
+        local_logo_url = save_logo_file(organization, logo_file)
+        if local_logo_url is None:
+            return False
+        organization.logo_url = local_logo_url
     organization.default_cta = form_text(request.form, "default_cta")
     organization.default_footer = form_text(request.form, "default_footer")
     organization.notes = form_text(request.form, "notes")
     db.session.add(organization)
     db.session.commit()
+    return True
+
+
+def save_logo_file(organization, logo_file):
+    original_filename = secure_filename(logo_file.filename)
+    extension = Path(original_filename).suffix.lower().lstrip(".")
+    if extension not in ALLOWED_LOGO_EXTENSIONS:
+        flash(f"Logo files ending in .{extension or 'unknown'} are not supported.", "error")
+        return None
+
+    unique_filename = f"{uuid4().hex}_{original_filename}"
+    relative_path = Path(organization.slug) / "logos" / unique_filename
+    target = Path(current_app.config["UPLOAD_FOLDER"]) / relative_path
+    target.parent.mkdir(parents=True, exist_ok=True)
+    logo_file.save(target)
+    return url_for("static", filename=f"uploads/{relative_path.as_posix()}")
 
 
 def unique_organization_slug(value, current_id=None):

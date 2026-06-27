@@ -3,12 +3,19 @@
 {% block content %}
 <header class="page-header"><div><p class="eyebrow">Hierarchy</p><h1>Organizations</h1></div><a class="button primary" href="{{ url_for('organizations.create_organization') }}">New Organization</a></header>
 <div class="table-wrap"><table>
-    <thead><tr><th>Name</th><th>Slug</th><th>Website</th><th>Campaigns</th><th></th></tr></thead>
+    <thead><tr><th>Logo</th><th>Name</th><th>Slug</th><th>Website</th><th>Campaigns</th><th></th></tr></thead>
     <tbody>
     {% for org in organizations %}
-        <tr><td><a href="{{ url_for('organizations.detail_organization', org_id=org.id) }}">{{ org.name }}</a></td><td>{{ org.slug or "" }}</td><td>{% if org.website_url %}<a href="{{ org.website_url }}" target="_blank">{{ org.website_url }}</a>{% endif %}</td><td>{{ org.campaigns|length }}</td><td><a href="{{ url_for('organizations.edit_organization', org_id=org.id) }}">Edit</a></td></tr>
+        <tr>
+            <td>{% if org.logo_url %}<img class="organization-logo-thumb" src="{{ org.logo_url }}" alt="{{ org.name }} logo">{% else %}<span class="workspace-fallback">{{ org.name[:2]|upper }}</span>{% endif %}</td>
+            <td><a href="{{ url_for('organizations.detail_organization', org_id=org.id) }}">{{ org.name }}</a></td>
+            <td>{{ org.slug or "" }}</td>
+            <td>{% if org.website_url %}<a href="{{ org.website_url }}" target="_blank">{{ org.website_url }}</a>{% endif %}</td>
+            <td>{{ org.campaigns|length }}</td>
+            <td><a href="{{ url_for('organizations.edit_organization', org_id=org.id) }}">Edit</a></td>
+        </tr>
     {% else %}
-        <tr><td colspan="5">No organizations yet.</td></tr>
+        <tr><td colspan="6">No organizations yet.</td></tr>
     {% endfor %}
     </tbody>
 </table></div>

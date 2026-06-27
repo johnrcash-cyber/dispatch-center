@@ -116,7 +116,6 @@ def add_publishing_target(dispatch_id, setting_id):
     existing = publishing_queue_query().filter(
         PublishingQueueItem.dispatch_id == dispatch.id,
         PublishingQueueItem.platform_setting_id == setting.id,
-        PublishingQueueItem.status != "Published",
     ).first()
     if existing:
         flash(f"{setting.platform_name} is already in the queue.", "success")
@@ -126,7 +125,7 @@ def add_publishing_target(dispatch_id, setting_id):
         dispatch_id=dispatch.id,
         platform_setting_id=setting.id,
         platform_name=setting.platform_name,
-        status="Queued",
+        status="Ready",
         destination_url=setting.destination_url,
         notes=form_text(request.form, "queue_notes"),
     )
@@ -136,12 +135,70 @@ def add_publishing_target(dispatch_id, setting_id):
     return redirect(url_for("dispatches.detail_dispatch", dispatch_id=dispatch.id))
 
 
+@dispatches_bp.route("/<int:dispatch_id>/queue", methods=["POST"])
+def add_selected_publishing_targets(dispatch_id):
+    dispatch = dispatch_query().filter(Dispatch.id == dispatch_id).first_or_404()
+    setting_ids = [int(value) for value in request.form.getlist("platform_setting_ids")]
+    if not setting_ids:
+        flash("Select at least one publishing target.", "error")
+        return redirect(url_for("dispatches.detail_dispatch", dispatch_id=dispatch.id))
+
+    settings = (
+        platform_setting_query()
+        .filter(PlatformSetting.id.in_(setting_ids), PlatformSetting.enabled.is_(True))
+        .all()
+    )
+    existing_setting_ids = {
+        item.platform_setting_id
+        for item in publishing_queue_query()
+        .filter(PublishingQueueItem.dispatch_id == dispatch.id)
+        .all()
+        if item.platform_setting_id
+    }
+    created = 0
+    for setting in settings:
+        if setting.id in existing_setting_ids:
+            continue
+        db.session.add(
+            PublishingQueueItem(
+                dispatch_id=dispatch.id,
+                platform_setting_id=setting.id,
+                platform_name=setting.platform_name,
+                status="Ready",
+                destination_url=setting.destination_url,
+                notes=form_text(request.form, "queue_notes"),
+            )
+        )
+        created += 1
+    db.session.commit()
+    if created:
+        flash(f"{created} publishing target(s) added to the queue.", "success")
+    else:
+        flash("Selected publishing targets were already in the queue.", "success")
+    return redirect(url_for("dispatches.detail_dispatch", dispatch_id=dispatch.id))
+
+
 def render_dispatch_form(dispatch, campaigns, title):
     media_assets = (
         media_asset_query()
         .order_by(MediaAsset.title)
         .all()
     )
+    platform_settings = (
+        platform_setting_query()
+        .filter(PlatformSetting.enabled.is_(True))
+        .order_by(PlatformSetting.platform_name)
+        .all()
+    )
+    queued_setting_ids = set()
+    if dispatch.id:
+        queued_setting_ids = {
+            item.platform_setting_id
+            for item in publishing_queue_query()
+            .filter(PublishingQueueItem.dispatch_id == dispatch.id)
+            .all()
+            if item.platform_setting_id
+        }
     return render_template(
         "dispatches/form.html",
         dispatch=dispatch,
@@ -149,6 +206,8 @@ def render_dispatch_form(dispatch, campaigns, title):
         media_assets=media_assets,
         usage_types=USAGE_TYPES,
         asset_types=ASSET_TYPES,
+        platform_settings=platform_settings,
+        queued_setting_ids=queued_setting_ids,
         title=title,
     )
 
@@ -162,7 +221,6 @@ def render_dispatch_detail(dispatch):
     )
     open_queue_items = publishing_queue_query().filter(
         PublishingQueueItem.dispatch_id == dispatch.id,
-        PublishingQueueItem.status != "Published",
     ).all()
     queued_setting_ids = {
         item.platform_setting_id for item in open_queue_items if item.platform_setting_id
